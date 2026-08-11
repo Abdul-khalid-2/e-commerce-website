@@ -21,3 +21,9 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# PHP
+/vendor
+storage/logs/*.log
+storage/logs/*
+!storage/logs/.gitkeep
