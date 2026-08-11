@@ -214,7 +214,7 @@ function buildNavbar(activePage) {
         <li class="nav-item"><a class="nav-link-custom ${activePage==='about'?'active':''}" href="about.html">About</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='contact'?'active':''}" href="contact.html">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='orders'?'active':''}" href="orders.html">Track Order</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='admin'?'active':''}" href="admin.html">Admin</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='admin'?'active':''}" href="admin/index.html">Admin</a></li>
       </ul>
     </div>
   </nav>
@@ -241,7 +241,7 @@ function buildNavbar(activePage) {
         <li class="nav-item"><a class="nav-link-custom ${activePage==='contact'?'active':''}" href="contact.html">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='orders'?'active':''}" href="orders.html">Track Order</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='wishlist'?'active':''}" href="wishlist.html">Wishlist</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='admin'?'active':''}" href="admin.html">Admin</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='admin'?'active':''}" href="admin/index.html">Admin</a></li>
         <li class="nav-item mt-3 d-flex gap-2">
           <button class="theme-toggle" onclick="toggleTheme()"><i class="bi bi-moon-fill" id="themeIconMobile"></i></button>
           <a href="login.html" class="btn-brand w-100">Login / Signup</a>
