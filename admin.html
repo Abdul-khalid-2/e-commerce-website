@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - ShopMate Pakistan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+      body { background: var(--bg); }
+      .admin-content-area { padding: 0; }
+    </style>
+  </head>
+  <body>
+    <div class="admin-overlay" id="adminOverlay" onclick="toggleSidebar()"></div>
+
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="px-3 mb-4 d-flex align-items-center gap-2">
+        <i class="bi bi-bag-check-fill text-brand fs-3"></i>
+        <span class="navbar-brand-text">ShopMate</span>
+      </div>
+      <ul class="nav flex-column">
+        <li><a class="nav-link active" data-section="dashboard" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+        <li><a class="nav-link" data-section="products" onclick="showSection('products')"><i class="bi bi-box-seam"></i> Products</a></li>
+        <li><a class="nav-link" data-section="orders" onclick="showSection('orders')"><i class="bi bi-receipt"></i> Orders</a></li>
+        <li><a class="nav-link" data-section="customers" onclick="showSection('customers')"><i class="bi bi-people"></i> Customers</a></li>
+        <li><a class="nav-link" data-section="categories" onclick="showSection('categories')"><i class="bi bi-grid"></i> Categories</a></li>
+        <li><a class="nav-link" data-section="settings" onclick="showSection('settings')"><i class="bi bi-gear"></i> Settings</a></li>
+        <li class="mt-3"><a class="nav-link" href="index.html"><i class="bi bi-box-arrow-left"></i> Back to Store</a></li>
+      </ul>
+    </aside>
+
+    <main class="admin-main">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-light d-lg-none" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+          <h3 class="fw-700 mb-0" id="sectionTitle">Dashboard Overview</h3>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button class="theme-toggle" onclick="toggleTheme()"><i class="bi bi-moon-fill" id="themeIcon"></i></button>
+          <div class="d-flex align-items-center gap-2">
+            <img src="https://images.pexels.com/photos/5869609/pexels-photo-5869609.jpeg?auto=compress&cs=tinysrgb&h=80&w=80" class="rounded-circle" style="width:40px;height:40px;object-fit:cover;">
+            <div class="d-none d-sm-block"><div class="fw-600 fs-7">Admin User</div><small class="text-muted-2">Administrator</small></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="adminContent"></div>
+    </main>
+
+    <div class="toast-container-custom"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="/data.js"></script>
+    <script src="/common.js"></script>
+    <script>
+      let adminProducts = [...PRODUCTS];
+      let chartInstance = null;
+      let editId = null;
+
+      function toggleSidebar() {
+        document.getElementById('adminSidebar').classList.toggle('show');
+        document.getElementById('adminOverlay').classList.toggle('show');
+      }
+
+      function showSection(section) {
+        document.querySelectorAll('.admin-sidebar .nav-link[data-section]').forEach(l => l.classList.toggle('active', l.dataset.section === section));
+        const titles = { dashboard: 'Dashboard Overview', products: 'Manage Products', orders: 'Orders', customers: 'Customers', categories: 'Categories', settings: 'Settings' };
+        document.getElementById('sectionTitle').textContent = titles[section];
+        if (section === 'dashboard') renderDashboard();
+        else if (section === 'products') renderProducts();
+        else if (section === 'orders') renderOrders();
+        else if (section === 'customers') renderCustomers();
+        else if (section === 'categories') renderCategories();
+        else if (section === 'settings') renderSettings();
+        document.getElementById('adminSidebar').classList.remove('show');
+        document.getElementById('adminOverlay').classList.remove('show');
+      }
+
+      function animateCounter(el, target, prefix = '', suffix = '') {
+        let current = 0;
+        const step = target / 40;
+        const timer = setInterval(() => {
+          current += step;
+          if (current >= target) { current = target; clearInterval(timer); }
+          el.textContent = prefix + Math.round(current).toLocaleString() + suffix;
+        }, 25);
+      }
+
+      function renderDashboard() {
+        const totalSales = ADMIN_ORDERS.reduce((s, o) => s + o.total, 0);
+        document.getElementById('adminContent').innerHTML = `
+          <div class="row g-3 mb-4">
+            <div class="col-lg-3 col-md-6">
+              <div class="stat-card d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:var(--brand-light);color:var(--brand);"><i class="bi bi-currency-rupee"></i></div>
+                <div><div class="stat-value" id="statSales">0</div><div class="stat-label">Total Sales</div></div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+              <div class="stat-card d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:#DBEAFE;color:#2563EB;"><i class="bi bi-bag-check"></i></div>
+                <div><div class="stat-value" id="statOrders">0</div><div class="stat-label">Total Orders</div></div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+              <div class="stat-card d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:#D1FAE5;color:#059669;"><i class="bi bi-people"></i></div>
+                <div><div class="stat-value" id="statCustomers">0</div><div class="stat-label">Customers</div></div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+              <div class="stat-card d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background:#FEF3C7;color:#D97706;"><i class="bi bi-box-seam"></i></div>
+                <div><div class="stat-value" id="statProducts">0</div><div class="stat-label">Products</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-lg-8">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h5 class="fw-700 mb-0">Sales Overview</h5>
+                  <select class="form-select form-select-sm" style="width:auto;" id="chartPeriod" onchange="updateChart()">
+                    <option value="weekly">This Week</option>
+                    <option value="monthly">This Year</option>
+                  </select>
+                </div>
+                <canvas id="salesChart" height="120"></canvas>
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="stat-card">
+                <h5 class="fw-700 mb-3">Top Categories</h5>
+                ${CATEGORIES.map((c, i) => {
+                  const pct = [30, 25, 18, 12, 10, 5][i] || 5;
+                  return `<div class="mb-3">
+                    <div class="d-flex justify-content-between fs-7 mb-1"><span class="fw-600">${c.name}</span><span class="text-muted-2">${pct}%</span></div>
+                    <div style="height:8px;background:var(--bg);border-radius:4px;"><div style="width:${pct}%;height:100%;background:var(--brand);border-radius:4px;transition:width 1s;"></div></div>
+                  </div>`;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <h5 class="fw-700 mb-3">Recent Orders</h5>
+            <div class="table-responsive">
+              <table class="table">
+                <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th></tr></thead>
+                <tbody>
+                  ${ADMIN_ORDERS.slice(0, 5).map(o => `<tr>
+                    <td class="fw-600">${o.id}</td><td>${o.customer}</td><td class="text-muted-2">${o.date}</td>
+                    <td class="fw-600">${formatPKR(o.total)}</td>
+                    <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+                  </tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>`;
+
+        animateCounter(document.getElementById('statSales'), totalSales, 'Rs. ');
+        animateCounter(document.getElementById('statOrders'), ADMIN_ORDERS.length);
+        animateCounter(document.getElementById('statCustomers'), ADMIN_CUSTOMERS.length);
+        animateCounter(document.getElementById('statProducts'), adminProducts.length);
+        setTimeout(initChart, 100);
+      }
+
+      function initChart() {
+        const ctx = document.getElementById('salesChart');
+        if (!ctx) return;
+        const period = document.getElementById('chartPeriod').value;
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        chartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: SALES_DATA.labels[period],
+            datasets: [{
+              label: 'Sales (Rs.)',
+              data: SALES_DATA[period],
+              borderColor: '#E85A1A',
+              backgroundColor: 'rgba(232,90,26,0.1)',
+              fill: true,
+              tension: 0.4,
+              borderWidth: 3,
+              pointBackgroundColor: '#E85A1A',
+              pointRadius: 5,
+              pointHoverRadius: 7,
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { grid: { color: isDark ? '#2A2E37' : '#E5E7EB' }, ticks: { color: isDark ? '#9CA3AF' : '#6B7280', callback: v => 'Rs. ' + (v/1000) + 'k' } },
+              x: { grid: { display: false }, ticks: { color: isDark ? '#9CA3AF' : '#6B7280' } }
+            }
+          }
+        });
+      }
+      function updateChart() { if (chartInstance) chartInstance.destroy(); initChart(); }
+
+      function renderProducts() {
+        document.getElementById('adminContent').innerHTML = `
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <p class="text-muted-2 mb-0">${adminProducts.length} products</p>
+            <button class="btn-brand" onclick="openProductModal()"><i class="bi bi-plus-lg me-1"></i> Add Product</button>
+          </div>
+          <div class="admin-table table-responsive">
+            <table class="table table-hover">
+              <thead><tr><th>Product</th><th>Category</th><th>Brand</th><th>Price</th><th>Stock</th><th>Rating</th><th>Actions</th></tr></thead>
+              <tbody>
+                ${adminProducts.map(p => `<tr>
+                  <td><div class="d-flex align-items-center gap-2"><img src="${p.images[0]}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;"> <span class="fw-600 fs-7">${p.name}</span></div></td>
+                  <td>${p.category}</td><td>${p.brand}</td><td class="fw-600 text-brand">${formatPKR(p.price)}</td>
+                  <td>${p.stock}</td><td><span class="rating-stars"><i class="bi bi-star-fill"></i></span> ${p.rating}</td>
+                  <td><button class="btn btn-sm btn-light me-1" onclick="openProductModal(${p.id})"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger" onclick="deleteProduct(${p.id})"><i class="bi bi-trash3"></i></button></td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      }
+
+      function openProductModal(id) {
+        editId = id || null;
+        const p = id ? adminProducts.find(x => x.id === id) : { name: '', category: CATEGORIES[0].name, brand: '', price: '', oldPrice: '', stock: '', rating: 4, description: '' };
+        const modalHtml = `
+          <div class="modal fade" id="productModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+              <div class="modal-content bg-surface" style="border:1px solid var(--border);border-radius:var(--radius);">
+                <div class="modal-header border-soft"><h5 class="modal-title fw-700">${id ? 'Edit' : 'Add'} Product</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                  <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label">Product Name</label><input type="text" class="form-control" id="pName" value="${p.name}"></div>
+                    <div class="col-md-6"><label class="form-label">Brand</label><input type="text" class="form-control" id="pBrand" value="${p.brand}"></div>
+                    <div class="col-md-4"><label class="form-label">Category</label><select class="form-select" id="pCat">${CATEGORIES.map(c => `<option ${c.name===p.category?'selected':''}>${c.name}</option>`).join('')}</select></div>
+                    <div class="col-md-4"><label class="form-label">Price (Rs.)</label><input type="number" class="form-control" id="pPrice" value="${p.price}"></div>
+                    <div class="col-md-4"><label class="form-label">Stock</label><input type="number" class="form-control" id="pStock" value="${p.stock}"></div>
+                    <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" id="pDesc" rows="3">${p.description}</textarea></div>
+                  </div>
+                </div>
+                <div class="modal-footer border-soft">
+                  <button class="btn-outline-brand" data-bs-dismiss="modal">Cancel</button>
+                  <button class="btn-brand" onclick="saveProduct()">${id ? 'Update' : 'Add'} Product</button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+        const old = document.getElementById('productModal');
+        if (old) old.remove();
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        new bootstrap.Modal(document.getElementById('productModal')).show();
+      }
+
+      function saveProduct() {
+        const name = document.getElementById('pName').value.trim();
+        const price = +document.getElementById('pPrice').value;
+        if (!name || !price) { showToast('Please fill required fields'); return; }
+        const data = {
+          name, brand: document.getElementById('pBrand').value, category: document.getElementById('pCat').value,
+          price, stock: +document.getElementById('pStock').value, description: document.getElementById('pDesc').value,
+          rating: 4, reviews: 0, images: ['https://images.pexels.com/photos/7068406/pexels-photo-7068406.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'],
+          colors: ['Default'], sizes: ['Standard']
+        };
+        if (editId) {
+          const idx = adminProducts.findIndex(p => p.id === editId);
+          adminProducts[idx] = { ...adminProducts[idx], ...data };
+          showToast('Product updated', 'success');
+        } else {
+          data.id = Math.max(...adminProducts.map(p => p.id)) + 1;
+          adminProducts.push(data);
+          showToast('Product added', 'success');
+        }
+        bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+        renderProducts();
+      }
+
+      function deleteProduct(id) {
+        if (!confirm('Delete this product?')) return;
+        adminProducts = adminProducts.filter(p => p.id !== id);
+        renderProducts();
+        showToast('Product deleted');
+      }
+
+      function renderOrders() {
+        document.getElementById('adminContent').innerHTML = `
+          <div class="admin-table table-responsive">
+            <table class="table table-hover">
+              <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody>
+                ${ADMIN_ORDERS.map(o => `<tr>
+                  <td class="fw-600">${o.id}</td><td>${o.customer}</td><td class="text-muted-2">${o.date}</td>
+                  <td class="fw-600">${formatPKR(o.total)}</td>
+                  <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+                  <td><select class="form-select form-select-sm" style="width:auto;" onchange="updateOrderStatus('${o.id}', this.value)">
+                    <option ${o.status==='Pending'?'selected':''}>Pending</option>
+                    <option ${o.status==='Shipped'?'selected':''}>Shipped</option>
+                    <option ${o.status==='Delivered'?'selected':''}>Delivered</option>
+                    <option ${o.status==='Cancelled'?'selected':''}>Cancelled</option>
+                  </select></td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      }
+      function updateOrderStatus(id, status) { const o = ADMIN_ORDERS.find(x => x.id === id); if (o) o.status = status; renderOrders(); showToast('Order ' + id + ' updated to ' + status, 'success'); }
+
+      function renderCustomers() {
+        document.getElementById('adminContent').innerHTML = `
+          <div class="admin-table table-responsive">
+            <table class="table table-hover">
+              <thead><tr><th>Customer</th><th>Email</th><th>Orders</th><th>Total Spent</th></tr></thead>
+              <tbody>
+                ${ADMIN_CUSTOMERS.map(c => `<tr>
+                  <td class="fw-600">${c.name}</td><td class="text-muted-2">${c.email}</td>
+                  <td>${c.orders}</td><td class="fw-600 text-brand">${formatPKR(c.spent)}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      }
+
+      function renderCategories() {
+        document.getElementById('adminContent').innerHTML = `
+          <div class="row g-3">
+            ${CATEGORIES.map(c => `
+              <div class="col-md-4 col-6">
+                <div class="stat-card text-center">
+                  <div style="width:80px;height:80px;border-radius:50%;overflow:hidden;margin:0 auto 10px;"><img src="${c.image}" style="width:100%;height:100%;object-fit:cover;"></div>
+                  <h6 class="fw-700">${c.name}</h6>
+                  <p class="text-muted-2 fs-7 mb-2">${PRODUCTS.filter(p => p.category === c.name).length} products</p>
+                  <button class="btn btn-sm btn-light"><i class="bi bi-pencil"></i> Edit</button>
+                </div>
+              </div>`).join('')}
+          </div>`;
+      }
+
+      function renderSettings() {
+        document.getElementById('adminContent').innerHTML = `
+          <div class="stat-card" style="max-width:600px;">
+            <h5 class="fw-700 mb-3">Store Settings</h5>
+            <div class="mb-3"><label class="form-label">Store Name</label><input type="text" class="form-control" value="ShopMate Pakistan"></div>
+            <div class="mb-3"><label class="form-label">Contact Email</label><input type="email" class="form-control" value="support@shopmate.pk"></div>
+            <div class="mb-3"><label class="form-label">Contact Phone</label><input type="tel" class="form-control" value="+92 300 1234567"></div>
+            <div class="mb-3"><label class="form-label">Currency</label><input type="text" class="form-control" value="PKR (Rs.)" readonly></div>
+            <div class="mb-3"><label class="form-label">Free Shipping Threshold (Rs.)</label><input type="number" class="form-control" value="2000"></div>
+            <button class="btn-brand" onclick="showToast('Settings saved','success')">Save Settings</button>
+          </div>`;
+      }
+
+      initTheme();
+      updateThemeIcon();
+      renderDashboard();
+    </script>
+  </body>
+</html>

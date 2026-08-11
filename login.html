@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login / Signup - ShopMate Pakistan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div id="navbar"></div>
+
+    <div class="container section-pad">
+      <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7" data-aos="fade-up">
+          <div class="auth-card">
+            <div class="d-flex">
+              <button class="auth-tab active" id="loginTab" onclick="switchTab('login')">Login</button>
+              <button class="auth-tab" id="signupTab" onclick="switchTab('signup')">Sign Up</button>
+            </div>
+            <div class="p-4 p-md-5">
+              <div id="loginForm">
+                <div class="text-center mb-4">
+                  <i class="bi bi-person-circle text-brand" style="font-size:3rem;"></i>
+                  <h4 class="fw-700 mt-2">Welcome Back!</h4>
+                  <p class="text-muted-2">Login to continue shopping</p>
+                </div>
+                <form onsubmit="event.preventDefault(); handleLogin();">
+                  <div class="mb-3"><label class="form-label">Email or Phone</label><div class="input-group"><span class="input-group-text bg-soft"><i class="bi bi-envelope"></i></span><input type="text" class="form-control" id="loginEmail" placeholder="you@example.com" required></div></div>
+                  <div class="mb-3"><label class="form-label">Password</label><div class="input-group"><span class="input-group-text bg-soft"><i class="bi bi-lock"></i></span><input type="password" class="form-control" id="loginPass" placeholder="Enter password" required><button class="btn btn-outline-secondary" type="button" onclick="togglePass('loginPass', this)"><i class="bi bi-eye"></i></button></div></div>
+                  <div class="d-flex justify-content-between mb-3"><div class="form-check"><input class="form-check-input" type="checkbox" id="remember"><label class="form-check-label fs-7" for="remember">Remember me</label></div><a href="#" class="fs-7 text-brand">Forgot password?</a></div>
+                  <button type="submit" class="btn-brand w-100">Login</button>
+                </form>
+                <div class="text-center my-3 text-muted-2 fs-7">or login with</div>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-outline-secondary flex-fill"><i class="bi bi-google"></i> Google</button>
+                  <button class="btn btn-outline-secondary flex-fill"><i class="bi bi-facebook"></i> Facebook</button>
+                </div>
+              </div>
+
+              <div id="signupForm" style="display:none;">
+                <div class="text-center mb-4">
+                  <i class="bi bi-person-plus text-brand" style="font-size:3rem;"></i>
+                  <h4 class="fw-700 mt-2">Create Account</h4>
+                  <p class="text-muted-2">Join ShopMate for the best deals</p>
+                </div>
+                <form onsubmit="event.preventDefault(); handleSignup();">
+                  <div class="mb-3"><label class="form-label">Full Name</label><div class="input-group"><span class="input-group-text bg-soft"><i class="bi bi-person"></i></span><input type="text" class="form-control" id="signupName" placeholder="Your full name" required></div></div>
+                  <div class="mb-3"><label class="form-label">Email</label><div class="input-group"><span class="input-group-text bg-soft"><i class="bi bi-envelope"></i></span><input type="email" class="form-control" id="signupEmail" placeholder="you@example.com" required></div></div>
+                  <div class="mb-3"><label class="form-label">Phone</label><div class="input-group"><span class="input-group-text bg-soft"><i class="bi bi-phone"></i></span><input type="tel" class="form-control" id="signupPhone" placeholder="03XX-XXXXXXX" required></div></div>
+                  <div class="mb-3"><label class="form-label">Password</label><div class="input-group"><span class="input-group-text bg-soft"><i class="bi bi-lock"></i></span><input type="password" class="form-control" id="signupPass" placeholder="Min 6 characters" required><button class="btn btn-outline-secondary" type="button" onclick="togglePass('signupPass', this)"><i class="bi bi-eye"></i></button></div></div>
+                  <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="terms" required><label class="form-check-label fs-7" for="terms">I agree to the <a href="#" class="text-brand">Terms & Conditions</a></label></div>
+                  <button type="submit" class="btn-brand w-100">Create Account</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          <p class="text-center text-muted-2 mt-3 fs-7"><a href="index.html" class="text-brand"><i class="bi bi-arrow-left"></i> Back to home</a></p>
+        </div>
+      </div>
+    </div>
+
+    <div id="footer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="/data.js"></script>
+    <script src="/common.js"></script>
+    <script>
+      function switchTab(tab) {
+        document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+        document.getElementById('signupTab').classList.toggle('active', tab === 'signup');
+        document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+        document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+      }
+      function togglePass(id, btn) {
+        const input = document.getElementById(id);
+        input.type = input.type === 'password' ? 'text' : 'password';
+        btn.querySelector('i').className = 'bi bi-eye' + (input.type === 'password' ? '' : '-slash');
+      }
+      function handleLogin() {
+        const email = document.getElementById('loginEmail').value.trim();
+        const pass = document.getElementById('loginPass').value;
+        if (!email || !pass) { showToast('Please fill all fields'); return; }
+        if (pass.length < 6) { showToast('Password must be at least 6 characters'); return; }
+        showToast('Login successful! Redirecting...', 'success');
+        setTimeout(() => window.location.href = 'index.html', 1500);
+      }
+      function handleSignup() {
+        const name = document.getElementById('signupName').value.trim();
+        const email = document.getElementById('signupEmail').value.trim();
+        const phone = document.getElementById('signupPhone').value.trim();
+        const pass = document.getElementById('signupPass').value;
+        if (!name || !email || !phone || !pass) { showToast('Please fill all fields'); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Please enter a valid email'); return; }
+        if (pass.length < 6) { showToast('Password must be at least 6 characters'); return; }
+        showToast('Account created successfully!', 'success');
+        setTimeout(() => window.location.href = 'index.html', 1500);
+      }
+      initCommon('login');
+    </script>
+  </body>
+</html>

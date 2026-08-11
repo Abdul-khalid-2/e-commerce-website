@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Track Your Orders - ShopMate Pakistan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div id="navbar"></div>
+
+    <div class="container section-pad pb-3">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-custom">
+          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+          <li class="breadcrumb-item active">Track Order</li>
+        </ol>
+      </nav>
+      <h1 class="section-title mb-0">Track Your Orders</h1>
+    </div>
+
+    <div class="container pb-5">
+      <div class="row g-4">
+        <div class="col-lg-4" data-aos="fade-up">
+          <div class="summary-card">
+            <h5 class="fw-700 mb-3">Find Your Order</h5>
+            <div class="mb-3"><label class="form-label">Order Number</label><input type="text" class="form-control" id="trackInput" placeholder="e.g. ORD-2401"></div>
+            <button class="btn-brand w-100" onclick="trackOrder()">Track Order</button>
+            <hr class="border-soft my-3">
+            <h6 class="fw-700 mb-2">Recent Orders</h6>
+            <div id="orderList"></div>
+          </div>
+        </div>
+        <div class="col-lg-8" data-aos="fade-up" data-aos-delay="100">
+          <div id="orderDetail"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="footer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="/data.js"></script>
+    <script src="/common.js"></script>
+    <script>
+      const orderStatuses = ['Order Placed', 'Confirmed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered'];
+
+      function renderOrderList() {
+        document.getElementById('orderList').innerHTML = ADMIN_ORDERS.slice(0, 5).map(o => `
+          <div class="d-flex justify-content-between align-items-center p-2 rounded mb-1" style="background:var(--bg);cursor:pointer;" onclick="showOrder('${o.id}')">
+            <div><div class="fw-600 fs-7">${o.id}</div><small class="text-muted-2">${o.date}</small></div>
+            <span class="status-badge status-${o.status}">${o.status}</span>
+          </div>`).join('');
+      }
+
+      function showOrder(id) {
+        const order = ADMIN_ORDERS.find(o => o.id === id);
+        if (!order) { document.getElementById('orderDetail').innerHTML = `<div class="empty-state"><i class="bi bi-exclamation-circle"></i><h4>Order not found</h4></div>`; return; }
+        const statusIdx = { Pending: 1, Shipped: 3, Delivered: 5, Cancelled: 0 }[order.status] || 2;
+        document.getElementById('orderDetail').innerHTML = `
+          <div class="summary-card mb-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <h4 class="fw-700 mb-0">${order.id}</h4>
+                <small class="text-muted-2">Placed on ${order.date}</small>
+              </div>
+              <span class="status-badge status-${order.status} fs-6">${order.status}</span>
+            </div>
+          </div>
+          <div class="summary-card">
+            <h5 class="fw-700 mb-4">Order Timeline</h5>
+            <div class="timeline">
+              ${orderStatuses.map((s, i) => `
+                <div class="timeline-item ${i < statusIdx ? 'completed' : ''} ${i === statusIdx ? 'active' : ''}">
+                  <div class="timeline-dot"><i class="bi ${i < statusIdx ? 'bi-check' : (i === statusIdx ? 'bi-clock' : 'bi-circle')}"></i></div>
+                  <div>
+                    <h6 class="fw-600 mb-0 ${i <= statusIdx ? '' : 'text-muted-2'}">${s}</h6>
+                    <small class="text-muted-2">${i < statusIdx ? 'Completed' : (i === statusIdx ? 'In progress' : 'Pending')}</small>
+                  </div>
+                </div>`).join('')}
+            </div>
+          </div>
+          <div class="summary-card mt-3">
+            <h5 class="fw-700 mb-3">Order Items</h5>
+            ${PRODUCTS.slice(0, 2).map(p => `
+              <div class="d-flex gap-2 align-items-center py-2 border-soft border-bottom">
+                <img src="${p.images[0]}" style="width:50px;height:50px;border-radius:8px;object-fit:cover;">
+                <div class="flex-grow-1"><div class="fs-7 fw-600">${p.name}</div><small class="text-muted-2">Qty: 1</small></div>
+                <div class="fs-7 fw-600 text-brand">${formatPKR(p.price)}</div>
+              </div>`).join('')}
+            <div class="d-flex justify-content-between mt-3"><span class="fw-600">Total</span><span class="fw-800 text-brand fs-5">${formatPKR(order.total)}</span></div>
+          </div>`;
+        if (window.AOS) AOS.refresh();
+      }
+
+      function trackOrder() {
+        const id = document.getElementById('trackInput').value.trim().toUpperCase();
+        if (!id) { showToast('Please enter an order number'); return; }
+        showOrder(id);
+      }
+
+      initCommon('orders');
+      renderOrderList();
+      showOrder('ORD-2401');
+    </script>
+  </body>
+</html>

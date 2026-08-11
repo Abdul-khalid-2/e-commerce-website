@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shop - ShopMate Pakistan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div id="navbar"></div>
+
+    <div class="container section-pad pb-3">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-custom">
+          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+          <li class="breadcrumb-item active" id="crumbCategory">Shop</li>
+        </ol>
+      </nav>
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+          <h1 class="section-title mb-0" id="shopTitle">All Products</h1>
+          <p class="section-sub mb-0" id="resultCount"></p>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+          <div class="d-none d-md-flex">
+            <button class="view-toggle-btn active" id="gridBtn" onclick="setView('grid')" title="Grid view"><i class="bi bi-grid"></i></button>
+            <button class="view-toggle-btn ms-1" id="listBtn" onclick="setView('list')" title="List view"><i class="bi bi-list-ul"></i></button>
+          </div>
+          <select class="form-select" id="sortSelect" onchange="applyFilters()" style="width:auto;">
+            <option value="popular">Sort: Popularity</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="newest">Newest First</option>
+            <option value="rating">Top Rated</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="container pb-5">
+      <div class="row">
+        <div class="col-lg-3 mb-4">
+          <button class="btn-brand w-100 mb-3 d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse"><i class="bi bi-funnel me-1"></i> Filters</button>
+          <div class="collapse d-lg-block" id="filterCollapse">
+            <div class="filter-sidebar">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-700 mb-0">Filters</h5>
+                <button class="btn btn-sm text-brand" onclick="clearFilters()">Clear All</button>
+              </div>
+
+              <div class="filter-group">
+                <h6>Categories</h6>
+                <div id="categoryFilters"></div>
+              </div>
+
+              <div class="filter-group">
+                <h6>Price Range</h6>
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="price-range-display" id="priceMinLabel">Rs. 0</span>
+                  <span class="price-range-display" id="priceMaxLabel">Rs. 500,000</span>
+                </div>
+                <input type="range" class="form-range" id="priceRange" min="0" max="500000" step="1000" value="500000" oninput="updatePriceLabel(); applyFilters()">
+              </div>
+
+              <div class="filter-group">
+                <h6>Brands</h6>
+                <div id="brandFilters"></div>
+              </div>
+
+              <div class="filter-group">
+                <h6>Rating</h6>
+                <div id="ratingFilters">
+                  <div class="filter-check"><input class="form-check-input" type="radio" name="rating" id="r0" value="0" checked onchange="applyFilters()"><label class="form-check-label ms-2" for="r0">All Ratings</label></div>
+                  <div class="filter-check"><input class="form-check-input" type="radio" name="rating" id="r4" value="4" onchange="applyFilters()"><label class="form-check-label ms-2" for="r4"><span class="rating-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></span> & up</label></div>
+                  <div class="filter-check"><input class="form-check-input" type="radio" name="rating" id="r45" value="4.5" onchange="applyFilters()"><label class="form-check-label ms-2" for="r45"><span class="rating-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></span> 4.5 & up</label></div>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <h6>Colors</h6>
+                <div id="colorFilters"></div>
+              </div>
+
+              <div class="filter-group">
+                <h6>Sizes</h6>
+                <div id="sizeFilters"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-9">
+          <div class="row g-3" id="productGrid"></div>
+          <div class="text-center mt-4" id="loadMoreWrap">
+            <button class="btn-outline-brand" id="loadMoreBtn" onclick="loadMore()">Load More</button>
+          </div>
+          <div class="empty-state" id="emptyState" style="display:none;">
+            <i class="bi bi-search"></i>
+            <h4>No products found</h4>
+            <p class="text-muted-2">Try adjusting your filters or search terms</p>
+            <button class="btn-brand" onclick="clearFilters()">Clear Filters</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="footer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="/data.js"></script>
+    <script src="/common.js"></script>
+    <script>
+      let currentView = 'grid';
+      let displayCount = 8;
+      const allColors = [...new Set(PRODUCTS.flatMap(p => p.colors))];
+      const allSizes = [...new Set(PRODUCTS.flatMap(p => p.sizes))];
+      const allBrands = [...new Set(PRODUCTS.map(p => p.brand))];
+      let urlCategory = new URLSearchParams(location.search).get('category') || '';
+
+      function renderFilters() {
+        document.getElementById('categoryFilters').innerHTML = ['All', ...CATEGORIES.map(c => c.name)].map(c => `
+          <div class="filter-check"><input class="form-check-input" type="radio" name="catFilter" id="cat-${c}" value="${c}" ${c === (urlCategory || 'All') ? 'checked' : ''} onchange="applyFilters()"><label class="form-check-label ms-2" for="cat-${c}">${c}</label></div>`).join('');
+
+        document.getElementById('brandFilters').innerHTML = allBrands.map(b => `
+          <div class="filter-check"><input class="form-check-input" type="checkbox" id="brand-${b}" value="${b}" onchange="applyFilters()"><label class="form-check-label ms-2" for="brand-${b}">${b}</label></div>`).join('');
+
+        const colorMap = { Black:'#1A1D23', White:'#FFFFFF', Blue:'#2563EB', Red:'#DC2626', Green:'#16A34A', Yellow:'#EAB308', Pink:'#EC4899', Grey:'#6B7280', Silver:'#C0C0C0', Brown:'#8B4513', 'Light Blue':'#7DD3FC', Beige:'#F5F5DC', Walnut:'#5D4E37', Oak:'#D4A574', Multi:'linear-gradient(135deg,#ff6b6b,#4ecdc4,#45b7d1)', Natural:'#F0E68C', Maroon:'#800000', Nude:'#E8C5B0' };
+        document.getElementById('colorFilters').innerHTML = allColors.map(c => `
+          <span class="color-swatch" title="${c}" data-color="${c}" onclick="toggleColor(this)" style="background:${colorMap[c] || '#ccc'};${c==='White'?'border-color:#ddd':''}"></span>`).join('');
+
+        document.getElementById('sizeFilters').innerHTML = allSizes.map(s => `
+          <div class="filter-check"><input class="form-check-input" type="checkbox" id="size-${s}" value="${s}" onchange="applyFilters()"><label class="form-check-label ms-2" for="size-${s}">${s}</label></div>`).join('');
+      }
+
+      let selectedColors = [];
+      function toggleColor(el) {
+        el.classList.toggle('selected');
+        const c = el.dataset.color;
+        if (selectedColors.includes(c)) selectedColors = selectedColors.filter(x => x !== c);
+        else selectedColors.push(c);
+        applyFilters();
+      }
+
+      function updatePriceLabel() {
+        document.getElementById('priceMaxLabel').textContent = formatPKR(document.getElementById('priceRange').value);
+      }
+
+      function getFiltered() {
+        let items = [...PRODUCTS];
+        const cat = document.querySelector('input[name="catFilter"]:checked')?.value || 'All';
+        if (cat !== 'All') items = items.filter(p => p.category === cat);
+        const maxPrice = +document.getElementById('priceRange').value;
+        items = items.filter(p => p.price <= maxPrice);
+        const brands = [...document.querySelectorAll('input[id^="brand-"]:checked')].map(b => b.value);
+        if (brands.length) items = items.filter(p => brands.includes(p.brand));
+        const minRating = +document.querySelector('input[name="rating"]:checked')?.value || 0;
+        if (minRating) items = items.filter(p => p.rating >= minRating);
+        if (selectedColors.length) items = items.filter(p => p.colors.some(c => selectedColors.includes(c)));
+        const sizes = [...document.querySelectorAll('input[id^="size-"]:checked')].map(s => s.value);
+        if (sizes.length) items = items.filter(p => p.sizes.some(s => sizes.includes(s)));
+        const sort = document.getElementById('sortSelect').value;
+        if (sort === 'price-low') items.sort((a,b) => a.price - b.price);
+        else if (sort === 'price-high') items.sort((a,b) => b.price - a.price);
+        else if (sort === 'rating') items.sort((a,b) => b.rating - a.rating);
+        else if (sort === 'newest') items.sort((a,b) => b.id - a.id);
+        else items.sort((a,b) => b.reviews - a.reviews);
+        return items;
+      }
+
+      function applyFilters() {
+        displayCount = 8;
+        renderProducts();
+      }
+
+      function renderProducts() {
+        const items = getFiltered();
+        document.getElementById('resultCount').textContent = `${items.length} product${items.length !== 1 ? 's' : ''} found`;
+        document.getElementById('emptyState').style.display = items.length === 0 ? 'block' : 'none';
+        document.getElementById('loadMoreWrap').style.display = items.length > displayCount ? 'block' : 'none';
+        const grid = document.getElementById('productGrid');
+        const shown = items.slice(0, displayCount);
+        if (currentView === 'grid') {
+          grid.className = 'row g-3';
+          grid.innerHTML = shown.map((p, i) => `<div class="col-lg-3 col-md-4 col-6" data-aos="fade-up" data-aos-delay="${(i%4)*60}">${renderProductCard(p)}</div>`).join('');
+        } else {
+          grid.className = 'row g-3 product-list-view';
+          grid.innerHTML = shown.map(p => `<div class="col-12" data-aos="fade-up">${renderProductCard(p, true)}</div>`).join('');
+        }
+        if (window.AOS) AOS.refresh();
+      }
+
+      function setView(view) {
+        currentView = view;
+        document.getElementById('gridBtn').classList.toggle('active', view === 'grid');
+        document.getElementById('listBtn').classList.toggle('active', view === 'list');
+        renderProducts();
+      }
+
+      function loadMore() {
+        displayCount += 8;
+        renderProducts();
+      }
+
+      function clearFilters() {
+        document.querySelector('input[id="cat-All"]').checked = true;
+        document.getElementById('priceRange').value = 500000;
+        updatePriceLabel();
+        document.querySelectorAll('input[id^="brand-"]').forEach(b => b.checked = false);
+        document.querySelectorAll('input[id^="size-"]').forEach(s => s.checked = false);
+        document.getElementById('r0').checked = true;
+        selectedColors = [];
+        document.querySelectorAll('.color-swatch.selected').forEach(s => s.classList.remove('selected'));
+        urlCategory = '';
+        document.getElementById('sortSelect').value = 'popular';
+        applyFilters();
+      }
+
+      initCommon('shop');
+      renderFilters();
+      if (urlCategory) {
+        document.getElementById('shopTitle').textContent = urlCategory;
+        document.getElementById('crumbCategory').textContent = urlCategory;
+        document.querySelector(`input[value="${urlCategory}"]`).checked = true;
+      }
+      updatePriceLabel();
+      renderProducts();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Details - ShopMate Pakistan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div id="navbar"></div>
+
+    <div class="container section-pad pb-3">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-custom" id="breadcrumb"></ol>
+      </nav>
+      <div id="productDetail"></div>
+    </div>
+
+    <section class="container pb-5">
+      <h3 class="fw-700 mb-4" data-aos="fade-up">You May Also Like</h3>
+      <div class="row g-3" id="relatedProducts"></div>
+    </section>
+
+    <div id="footer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="/data.js"></script>
+    <script src="/common.js"></script>
+    <script>
+      const productId = +new URLSearchParams(location.search).get('id');
+      const product = PRODUCTS.find(p => p.id === productId) || PRODUCTS[0];
+      let selectedColor = product.colors[0];
+      let selectedSize = product.sizes[0];
+      let selectedQty = 1;
+      let currentImage = 0;
+
+      function renderProduct() {
+        const discount = product.oldPrice ? Math.round((1 - product.price / product.oldPrice) * 100) : 0;
+        document.getElementById('breadcrumb').innerHTML = `
+          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+          <li class="breadcrumb-item"><a href="shop.html?category=${encodeURIComponent(product.category)}">${product.category}</a></li>
+          <li class="breadcrumb-item active">${product.name}</li>`;
+
+        document.getElementById('productDetail').innerHTML = `
+          <div class="row g-4">
+            <div class="col-lg-5" data-aos="fade-right">
+              <div class="gallery-main" id="galleryMain" onmousemove="handleZoom(event)" onmouseleave="resetZoom()">
+                <img src="${product.images[0]}" id="mainImage" alt="${product.name}">
+              </div>
+              <div class="d-flex gap-2 mt-3" id="thumbnails">
+                ${product.images.map((img, i) => `
+                  <div class="gallery-thumb ${i===0?'active':''}" style="width:80px;" onclick="switchImage(${i})">
+                    <img src="${img}" alt="${product.name} ${i+1}">
+                  </div>`).join('')}
+              </div>
+            </div>
+            <div class="col-lg-4" data-aos="fade-up">
+              <span class="product-cat-tag">${product.category}</span>
+              <h2 class="fw-700 mt-1 mb-2">${product.name}</h2>
+              <div class="d-flex align-items-center gap-2 mb-3">
+                ${renderStars(product.rating)}
+                <span class="rating-text">${product.rating} (${product.reviews} reviews)</span>
+              </div>
+              <div class="mb-3">
+                <span class="product-price fs-3">${formatPKR(product.price)}</span>
+                ${product.oldPrice ? `<span class="product-old-price fs-5">${formatPKR(product.oldPrice)}</span>` : ''}
+                ${discount > 0 ? `<span class="badge bg-success ms-2">Save ${discount}%</span>` : ''}
+              </div>
+              <p class="text-muted-2 mb-3">${product.description}</p>
+              <p class="fs-7 mb-3"><i class="bi bi-${product.stock > 0 ? 'check-circle text-success' : 'x-circle text-danger'}"></i> ${product.stock > 0 ? `In Stock (${product.stock} available)` : 'Out of Stock'}</p>
+
+              ${product.colors.length > 1 ? `
+              <div class="mb-3">
+                <span class="fw-600 d-block mb-2">Color: <span id="selectedColor">${selectedColor}</span></span>
+                ${product.colors.map((c, i) => `<span class="option-chip ${i===0?'active':''}" data-color="${c}" onclick="selectColor(this,'${c}')">${c}</span>`).join(' ')}
+              </div>` : ''}
+
+              ${product.sizes.length > 1 ? `
+              <div class="mb-3">
+                <span class="fw-600 d-block mb-2">Size/Variant: <span id="selectedSize">${selectedSize}</span></span>
+                ${product.sizes.map((s, i) => `<span class="option-chip ${i===0?'active':''}" data-size="${s}" onclick="selectSize(this,'${s}')">${s}</span>`).join(' ')}
+              </div>` : ''}
+
+              <div class="mb-3">
+                <span class="fw-600 d-block mb-2">Quantity:</span>
+                <div class="qty-selector">
+                  <button class="qty-btn" onclick="changeQty(-1)"><i class="bi bi-dash"></i></button>
+                  <input type="text" class="qty-val" id="qtyVal" value="1" readonly>
+                  <button class="qty-btn" onclick="changeQty(1)"><i class="bi bi-plus"></i></button>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2 flex-wrap mb-3">
+                <button class="btn-brand flex-grow-1" onclick="addProductToCart()"><i class="bi bi-cart-plus me-1"></i> Add to Cart</button>
+                <button class="btn-accent flex-grow-1" onclick="buyNow()"><i class="bi bi-lightning-charge me-1"></i> Buy Now</button>
+              </div>
+              <button class="btn-outline-brand w-100" onclick="toggleWishlist(${product.id}); updateWishBtn()"><i class="bi bi-heart${isWishlisted(product.id) ? '-fill' : ''}" id="wishIcon"></i> <span id="wishText">${isWishlisted(product.id) ? 'Remove from' : 'Add to'} Wishlist</span></button>
+
+              <div class="mt-4 pt-3 border-soft border-top">
+                <div class="row g-2 text-center">
+                  <div class="col-4"><i class="bi bi-truck text-brand fs-4"></i><p class="fs-8 text-muted-2 mt-1 mb-0">Free Delivery</p></div>
+                  <div class="col-4"><i class="bi bi-arrow-repeat text-brand fs-4"></i><p class="fs-8 text-muted-2 mt-1 mb-0">7-Day Returns</p></div>
+                  <div class="col-4"><i class="bi bi-shield-check text-brand fs-4"></i><p class="fs-8 text-muted-2 mt-1 mb-0">Warranty</p></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-3" data-aos="fade-left">
+              <div class="summary-card">
+                <h6 class="fw-700 mb-3">Order Summary</h6>
+                <div class="summary-row"><span>Price</span><span>${formatPKR(product.price)}</span></div>
+                <div class="summary-row"><span>Quantity</span><span id="summaryQty">1</span></div>
+                <div class="summary-row"><span>Delivery</span><span class="text-success">FREE</span></div>
+                <div class="summary-total d-flex justify-content-between"><span>Total</span><span class="text-brand" id="summaryTotal">${formatPKR(product.price)}</span></div>
+                <button class="btn-brand w-100 mt-3" onclick="buyNow()">Buy Now</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-5" data-aos="fade-up">
+            <div class="col-12">
+              <ul class="nav nav-tabs tab-custom" id="prodTabs" role="tablist">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#desc">Description</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#specs">Specifications</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews">Reviews (${product.reviews})</button></li>
+              </ul>
+              <div class="tab-content p-4 bg-surface rounded-bottom shadow-soft" style="border:1px solid var(--border);border-top:none;">
+                <div class="tab-pane fade show active" id="desc">
+                  <p class="text-muted-2 mb-0">${product.description}</p>
+                  <p class="text-muted-2 mt-3">This product is carefully selected and quality-checked to ensure you get the best value for your money. Shop with confidence at ShopMate Pakistan.</p>
+                </div>
+                <div class="tab-pane fade" id="specs">
+                  <table class="table">
+                    <tbody>
+                      ${Object.entries(product.specs).map(([k, v]) => `<tr><td class="fw-600" style="width:40%">${k}</td><td>${v}</td></tr>`).join('')}
+                    </tbody>
+                  </table>
+                </div>
+                <div class="tab-pane fade" id="reviews">
+                  <div class="d-flex align-items-center gap-4 mb-4 flex-wrap">
+                    <div class="text-center">
+                      <div class="display-5 fw-700 text-brand">${product.rating}</div>
+                      ${renderStars(product.rating)}
+                      <p class="text-muted-2 fs-7 mt-1">${product.reviews} reviews</p>
+                    </div>
+                    <div class="flex-grow-1" style="min-width:200px;">
+                      ${[5,4,3,2,1].map(s => {
+                        const pct = s === Math.round(product.rating) ? 60 : s === Math.round(product.rating)-1 ? 25 : 5;
+                        return `<div class="d-flex align-items-center gap-2 mb-1"><span class="fs-8">${s} <i class="bi bi-star-fill text-warning fs-8"></i></span><div style="flex:1;height:8px;background:var(--bg);border-radius:4px;"><div style="width:${pct}%;height:100%;background:var(--brand);border-radius:4px;"></div></div><span class="fs-8 text-muted-2">${pct}%</span></div>`;
+                      }).join('')}
+                    </div>
+                  </div>
+                  <hr class="border-soft">
+                  ${[
+                    { name: 'Sana Khan', date: '2 days ago', rating: 5, text: 'Excellent product! Exactly as described. Delivery was quick.' },
+                    { name: 'Ali Raza', date: '1 week ago', rating: 4, text: 'Good quality and value for money. Recommended.' },
+                    { name: 'Hira Aslam', date: '2 weeks ago', rating: 5, text: 'Very happy with my purchase. Will buy again from ShopMate.' }
+                  ].map(r => `
+                    <div class="review-card">
+                      <div class="d-flex justify-content-between mb-2">
+                        <div><strong>${r.name}</strong><br><small class="text-muted-2">${r.date}</small></div>
+                        ${renderStars(r.rating)}
+                      </div>
+                      <p class="text-muted-2 mb-0">${r.text}</p>
+                    </div>`).join('')}
+                </div>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      function switchImage(i) {
+        currentImage = i;
+        document.getElementById('mainImage').src = product.images[i];
+        document.querySelectorAll('.gallery-thumb').forEach((t, idx) => t.classList.toggle('active', idx === i));
+      }
+      function handleZoom(e) {
+        const main = document.getElementById('galleryMain');
+        const img = document.getElementById('mainImage');
+        const rect = main.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        img.style.transformOrigin = `${x}% ${y}%`;
+        main.classList.add('zoomed');
+      }
+      function resetZoom() {
+        document.getElementById('galleryMain').classList.remove('zoomed');
+      }
+      function selectColor(el, c) {
+        selectedColor = c;
+        document.querySelectorAll('.option-chip[data-color]').forEach(chip => chip.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('selectedColor').textContent = c;
+      }
+      function selectSize(el, s) {
+        selectedSize = s;
+        document.querySelectorAll('.option-chip[data-size]').forEach(chip => chip.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('selectedSize').textContent = s;
+      }
+      function changeQty(d) {
+        selectedQty = Math.max(1, selectedQty + d);
+        document.getElementById('qtyVal').value = selectedQty;
+        document.getElementById('summaryQty').textContent = selectedQty;
+        document.getElementById('summaryTotal').textContent = formatPKR(product.price * selectedQty);
+      }
+      function addProductToCart() {
+        addToCart(product.id, selectedQty, { color: selectedColor, size: selectedSize });
+      }
+      function buyNow() {
+        addToCart(product.id, selectedQty, { color: selectedColor, size: selectedSize });
+        window.location.href = 'checkout.html';
+      }
+      function updateWishBtn() {
+        const wished = isWishlisted(product.id);
+        document.getElementById('wishIcon').className = 'bi bi-heart' + (wished ? '-fill' : '');
+        document.getElementById('wishText').textContent = (wished ? 'Remove from' : 'Add to') + ' Wishlist';
+      }
+
+      function renderRelated() {
+        const related = PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+        const items = related.length >= 4 ? related : [...related, ...PRODUCTS.filter(p => p.id !== product.id && !related.includes(p))].slice(0, 4);
+        document.getElementById('relatedProducts').innerHTML = items.map((p, i) => `
+          <div class="col-lg-3 col-md-6 col-6" data-aos="fade-up" data-aos-delay="${i*80}">${renderProductCard(p)}</div>`).join('');
+      }
+
+      initCommon('shop');
+      renderProduct();
+      renderRelated();
+    </script>
+  </body>
+</html>
