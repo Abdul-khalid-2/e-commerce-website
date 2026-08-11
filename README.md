@@ -79,12 +79,28 @@ config/
 database/
 ├── migrate.php          CLI tool: creates the DB if missing, runs pending
 │                          migrations
-└── migrations/           001_create_users_table.sql ... 014_create_settings_table.sql
-                           14 tables: users, categories, products,
-                           product_images, product_colors, product_sizes,
-                           product_specs, hero_slides, testimonials,
-                           trust_badges, addresses, orders, order_items,
-                           wishlists, carts, cart_items, settings
+├── migrations/           001_create_users_table.sql ... 014_create_settings_table.sql
+│                          14 tables: users, categories, products,
+│                          product_images, product_colors, product_sizes,
+│                          product_specs, hero_slides, testimonials,
+│                          trust_badges, addresses, orders, order_items,
+│                          wishlists, carts, cart_items, settings
+├── seed.php               CLI tool: loads the catalog + hero slides +
+│                            testimonials + trust badges + settings +
+│                            a default admin user into the database
+└── seeds/
+    └── products.php        The 16-product catalog as a plain PHP array
+                             (same data that used to live in data.js)
+
+app/Models/
+├── Category.php         active(), findBySlug(), productCounts()
+├── Product.php            find()/findBySlug() (auto-attach images/
+│                           colors/sizes/specs), byCategory(), search()
+│                           (FULLTEXT with a LIKE fallback), createFull(),
+│                           replaceRelations()
+├── Setting.php             get()/set()/all() for the settings table
+└── User.php                register() (hashes the password),
+                             findByEmail(), verifyPassword()
 
 includes/                Empty — will hold header.php, footer.php,
                           navbar.php once pages are converted to .php
@@ -103,9 +119,18 @@ cp .env.example .env
 # edit .env: set DB_USER / DB_PASS to match your local MySQL/MariaDB
 
 php database/migrate.php          # creates the `shopmate` database and
-                                   # all 14 tables
+                                   # all 17 tables
+php database/seed.php             # loads products, categories, hero
+                                   # slides, testimonials, trust badges,
+                                   # settings, and a default admin user
 php database/migrate.php status   # see which migrations have run
 ```
+
+The seed script prints the default admin login when it creates it
+(`admin@shopmate.pk` / a generated password) — change that password once
+the login page exists. Re-running `php database/seed.php` is a safe no-op
+if data already exists; pass `--fresh` to wipe every seedable table and
+reseed from scratch.
 
 Re-running `php database/migrate.php` is always safe — it only applies
 files it hasn't seen before. To change the schema later (add a column,
@@ -127,16 +152,13 @@ Then just run `php database/migrate.php` again.
 Goal: turn this into a dynamic PHP + MySQL app without changing the visual
 design. Remaining steps:
 
-1. `App\Models` classes (Product, Category, Order, User, ...) for CRUD
-   against the tables above
-2. `includes/header.php`, `includes/footer.php`, `includes/navbar.php` —
+1. `includes/header.php`, `includes/footer.php`, `includes/navbar.php` —
    shared markup, replacing the `common.js`-generated navbar/footer
-3. Seed script to load the current `data.js` content into the database
-4. Convert `.html` pages to `.php`, pulling data from the DB instead of
-   the static JS arrays
-5. Real cart/session handling (PHP sessions + `carts`/`cart_items` tables
+2. Convert `.html` pages to `.php`, pulling data from the DB (via the
+   Models) instead of the static JS arrays
+3. Real cart/session handling (PHP sessions + `carts`/`cart_items` tables
    instead of `localStorage`)
-6. Admin CRUD (`admin/products.php`, `admin/categories.php`,
+4. Admin CRUD (`admin/products.php`, `admin/categories.php`,
    `admin/orders.php`, etc.) with real persistence + authentication
-7. Checkout → orders table, order status updates reflected on the
+5. Checkout → orders table, order status updates reflected on the
    customer-facing Orders/Track Order page
