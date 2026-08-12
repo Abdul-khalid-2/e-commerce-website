@@ -107,7 +107,7 @@ require __DIR__ . '/includes/navbar.php';
         <div class="row g-3" id="categoryGrid">
 <?php foreach ($categories as $i => $c): ?>
           <div class="col-lg-2 col-md-4 col-6" data-aos="zoom-in" data-aos-delay="<?= $i * 60 ?>">
-            <a href="shop.html?category=<?= urlencode($c['name']) ?>" class="cat-card d-block">
+            <a href="shop.php?category=<?= urlencode($c['name']) ?>" class="cat-card d-block">
               <img src="<?= htmlspecialchars($c['image'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($c['name'], ENT_QUOTES, 'UTF-8') ?>" loading="lazy">
               <div class="cat-card-body"><i class="bi <?= htmlspecialchars($c['icon'], ENT_QUOTES, 'UTF-8') ?>"></i><h5><?= htmlspecialchars($c['name'], ENT_QUOTES, 'UTF-8') ?></h5></div>
             </a>
@@ -125,7 +125,7 @@ require __DIR__ . '/includes/navbar.php';
             <h2 class="section-title">Featured Products</h2>
             <p class="section-sub">Handpicked products just for you</p>
           </div>
-          <a href="shop.html" class="btn-outline-brand d-none d-sm-inline-flex">View All <i class="bi bi-arrow-right ms-1"></i></a>
+          <a href="shop.php" class="btn-outline-brand d-none d-sm-inline-flex">View All <i class="bi bi-arrow-right ms-1"></i></a>
         </div>
         <div class="row g-3" id="featuredGrid">
 <?php foreach ($featuredProducts as $i => $p): ?>
@@ -133,7 +133,7 @@ require __DIR__ . '/includes/navbar.php';
 <?php endforeach; ?>
         </div>
         <div class="text-center mt-4 d-sm-none">
-          <a href="shop.html" class="btn-outline-brand">View All Products</a>
+          <a href="shop.php" class="btn-outline-brand">View All Products</a>
         </div>
       </div>
     </section>

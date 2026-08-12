@@ -127,9 +127,9 @@ echo '  ' . count($productsData) . ' products created.' . PHP_EOL;
 echo 'Seeding hero slides...' . PHP_EOL;
 
 $heroSlides = [
-    ['title' => 'Mega Tech Sale', 'subtitle' => 'Up to 40% off on smartphones, laptops & accessories', 'image' => 'https://images.pexels.com/photos/7987759/pexels-photo-7987759.jpeg?auto=compress&cs=tinysrgb&h=800&w=1600', 'cta_text' => 'Shop Electronics', 'cta_link' => 'shop.html?category=' . rawurlencode('Electronics')],
-    ['title' => 'Fashion Week Deals', 'subtitle' => 'New season styles starting at Rs. 2,999', 'image' => 'https://images.pexels.com/photos/8386663/pexels-photo-8386663.jpeg?auto=compress&cs=tinysrgb&h=800&w=1600', 'cta_text' => 'Shop Fashion', 'cta_link' => 'shop.html?category=' . rawurlencode('Fashion')],
-    ['title' => 'Home Makeover Sale', 'subtitle' => 'Transform your space with up to 30% off', 'image' => 'https://images.pexels.com/photos/7573934/pexels-photo-7573934.jpeg?auto=compress&cs=tinysrgb&h=800&w=1600', 'cta_text' => 'Shop Home', 'cta_link' => 'shop.html?category=' . rawurlencode('Home & Living')],
+    ['title' => 'Mega Tech Sale', 'subtitle' => 'Up to 40% off on smartphones, laptops & accessories', 'image' => 'https://images.pexels.com/photos/7987759/pexels-photo-7987759.jpeg?auto=compress&cs=tinysrgb&h=800&w=1600', 'cta_text' => 'Shop Electronics', 'cta_link' => 'shop.php?category=' . rawurlencode('Electronics')],
+    ['title' => 'Fashion Week Deals', 'subtitle' => 'New season styles starting at Rs. 2,999', 'image' => 'https://images.pexels.com/photos/8386663/pexels-photo-8386663.jpeg?auto=compress&cs=tinysrgb&h=800&w=1600', 'cta_text' => 'Shop Fashion', 'cta_link' => 'shop.php?category=' . rawurlencode('Fashion')],
+    ['title' => 'Home Makeover Sale', 'subtitle' => 'Transform your space with up to 30% off', 'image' => 'https://images.pexels.com/photos/7573934/pexels-photo-7573934.jpeg?auto=compress&cs=tinysrgb&h=800&w=1600', 'cta_text' => 'Shop Home', 'cta_link' => 'shop.php?category=' . rawurlencode('Home & Living')],
 ];
 $stmt = $db->prepare(
     'INSERT INTO hero_slides (title, subtitle, image, cta_text, cta_link, sort_order) VALUES (:title, :subtitle, :image, :cta_text, :cta_link, :sort)'

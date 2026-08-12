@@ -217,11 +217,11 @@ function buildNavbar(activePage) {
     <div class="container d-none d-lg-block">
       <ul class="navbar-nav flex-row gap-1 mt-2 pb-1">
         <li class="nav-item"><a class="nav-link-custom ${activePage==='home'?'active':''}" href="index.php">Home</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='shop'?'active':''}" href="shop.html">Shop</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='electronics'?'active':''}" href="shop.html?category=Electronics">Electronics</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='fashion'?'active':''}" href="shop.html?category=Fashion">Fashion</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='home-living'?'active':''}" href="shop.html?category=Home & Living">Home & Living</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='beauty'?'active':''}" href="shop.html?category=Beauty">Beauty</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='shop'?'active':''}" href="shop.php">Shop</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='electronics'?'active':''}" href="shop.php?category=Electronics">Electronics</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='fashion'?'active':''}" href="shop.php?category=Fashion">Fashion</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='home-living'?'active':''}" href="shop.php?category=Home & Living">Home & Living</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='beauty'?'active':''}" href="shop.php?category=Beauty">Beauty</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='about'?'active':''}" href="about.html">About</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='contact'?'active':''}" href="contact.html">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='orders'?'active':''}" href="orders.html">Track Order</a></li>
@@ -243,11 +243,11 @@ function buildNavbar(activePage) {
       </div>
       <ul class="navbar-nav">
         <li class="nav-item"><a class="nav-link-custom ${activePage==='home'?'active':''}" href="index.php">Home</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='shop'?'active':''}" href="shop.html">Shop</a></li>
-        <li class="nav-item"><a class="nav-link-custom" href="shop.html?category=Electronics">Electronics</a></li>
-        <li class="nav-item"><a class="nav-link-custom" href="shop.html?category=Fashion">Fashion</a></li>
-        <li class="nav-item"><a class="nav-link-custom" href="shop.html?category=Home & Living">Home & Living</a></li>
-        <li class="nav-item"><a class="nav-link-custom" href="shop.html?category=Beauty">Beauty</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='shop'?'active':''}" href="shop.php">Shop</a></li>
+        <li class="nav-item"><a class="nav-link-custom" href="shop.php?category=Electronics">Electronics</a></li>
+        <li class="nav-item"><a class="nav-link-custom" href="shop.php?category=Fashion">Fashion</a></li>
+        <li class="nav-item"><a class="nav-link-custom" href="shop.php?category=Home & Living">Home & Living</a></li>
+        <li class="nav-item"><a class="nav-link-custom" href="shop.php?category=Beauty">Beauty</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='about'?'active':''}" href="about.html">About</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='contact'?'active':''}" href="contact.html">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='orders'?'active':''}" href="orders.html">Track Order</a></li>
@@ -285,7 +285,7 @@ function buildFooter() {
           <h5>Quick Links</h5>
           <ul class="list-unstyled">
             <li class="mb-2"><a href="index.php">Home</a></li>
-            <li class="mb-2"><a href="shop.html">Shop</a></li>
+            <li class="mb-2"><a href="shop.php">Shop</a></li>
             <li class="mb-2"><a href="about.html">About Us</a></li>
             <li class="mb-2"><a href="contact.html">Contact</a></li>
             <li class="mb-2"><a href="orders.html">Track Order</a></li>

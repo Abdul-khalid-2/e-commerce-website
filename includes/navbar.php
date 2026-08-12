@@ -50,9 +50,9 @@ function nav_active(string $key, string $activePage): string
     <div class="container d-none d-lg-block">
       <ul class="navbar-nav flex-row gap-1 mt-2 pb-1">
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('home', $activePage) ?>" href="<?= $basePath ?>index.php">Home</a></li>
-        <li class="nav-item"><a class="nav-link-custom <?= nav_active('shop', $activePage) ?>" href="<?= $basePath ?>shop.html">Shop</a></li>
+        <li class="nav-item"><a class="nav-link-custom <?= nav_active('shop', $activePage) ?>" href="<?= $basePath ?>shop.php">Shop</a></li>
 <?php foreach ($navCategories as $cat): ?>
-        <li class="nav-item"><a class="nav-link-custom" href="<?= $basePath ?>shop.html?category=<?= urlencode($cat['name']) ?>"><?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?></a></li>
+        <li class="nav-item"><a class="nav-link-custom" href="<?= $basePath ?>shop.php?category=<?= urlencode($cat['name']) ?>"><?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?></a></li>
 <?php endforeach; ?>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('about', $activePage) ?>" href="<?= $basePath ?>about.html">About</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('contact', $activePage) ?>" href="<?= $basePath ?>contact.html">Contact</a></li>
@@ -75,9 +75,9 @@ function nav_active(string $key, string $activePage): string
       </div>
       <ul class="navbar-nav">
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('home', $activePage) ?>" href="<?= $basePath ?>index.php">Home</a></li>
-        <li class="nav-item"><a class="nav-link-custom <?= nav_active('shop', $activePage) ?>" href="<?= $basePath ?>shop.html">Shop</a></li>
+        <li class="nav-item"><a class="nav-link-custom <?= nav_active('shop', $activePage) ?>" href="<?= $basePath ?>shop.php">Shop</a></li>
 <?php foreach ($navCategories as $cat): ?>
-        <li class="nav-item"><a class="nav-link-custom" href="<?= $basePath ?>shop.html?category=<?= urlencode($cat['name']) ?>"><?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?></a></li>
+        <li class="nav-item"><a class="nav-link-custom" href="<?= $basePath ?>shop.php?category=<?= urlencode($cat['name']) ?>"><?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?></a></li>
 <?php endforeach; ?>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('about', $activePage) ?>" href="<?= $basePath ?>about.html">About</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('contact', $activePage) ?>" href="<?= $basePath ?>contact.html">Contact</a></li>

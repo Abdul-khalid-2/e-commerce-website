@@ -73,9 +73,9 @@ const CATEGORIES = [
 ];
 
 const HERO_SLIDES = [
-  { title: "Mega Tech Sale", subtitle: "Up to 40% off on smartphones, laptops & accessories", image: "https://images.pexels.com/photos/7987759/pexels-photo-7987759.jpeg?auto=compress&cs=tinysrgb&h=800&w=1600", cta: "Shop Electronics", link: "shop.html?category=Electronics" },
-  { title: "Fashion Week Deals", subtitle: "New season styles starting at Rs. 2,999", image: "https://images.pexels.com/photos/8386663/pexels-photo-8386663.jpeg?auto=compress&cs=tinysrgb&h=800&w=1600", cta: "Shop Fashion", link: "shop.html?category=Fashion" },
-  { title: "Home Makeover Sale", subtitle: "Transform your space with up to 30% off", image: "https://images.pexels.com/photos/7573934/pexels-photo-7573934.jpeg?auto=compress&cs=tinysrgb&h=800&w=1600", cta: "Shop Home", link: "shop.html?category=Home & Living" },
+  { title: "Mega Tech Sale", subtitle: "Up to 40% off on smartphones, laptops & accessories", image: "https://images.pexels.com/photos/7987759/pexels-photo-7987759.jpeg?auto=compress&cs=tinysrgb&h=800&w=1600", cta: "Shop Electronics", link: "shop.php?category=Electronics" },
+  { title: "Fashion Week Deals", subtitle: "New season styles starting at Rs. 2,999", image: "https://images.pexels.com/photos/8386663/pexels-photo-8386663.jpeg?auto=compress&cs=tinysrgb&h=800&w=1600", cta: "Shop Fashion", link: "shop.php?category=Fashion" },
+  { title: "Home Makeover Sale", subtitle: "Transform your space with up to 30% off", image: "https://images.pexels.com/photos/7573934/pexels-photo-7573934.jpeg?auto=compress&cs=tinysrgb&h=800&w=1600", cta: "Shop Home", link: "shop.php?category=Home & Living" },
 ];
 
 const TESTIMONIALS = [
