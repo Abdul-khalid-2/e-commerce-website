@@ -160,13 +160,21 @@ design.
   client-side (unchanged design), but the product/category data feeding
   that JS now comes from the database on every request instead of the
   static `data.js` file
+- `product.php` — product detail page converted. Gallery, price, specs,
+  stock, and the "You May Also Like" related-products grid are now
+  server-rendered from the database (better for SEO than the old
+  fully-client-rendered version). Falls back to the lowest-id active
+  product if `?id=` is missing or invalid, matching the original
+  behaviour. Color/size selection, quantity, add-to-cart, buy-now, and
+  wishlist toggle stay client-side (unchanged JS) since those are pure
+  UI interactions on an already-rendered page.
 - `includes/header.php`, `includes/navbar.php`, `includes/footer.php` —
   shared markup, replacing the old `common.js`-generated navbar/footer.
   The navbar's category links are now live from the database.
 - `includes/product-card.php` — shared `render_product_card()`, the PHP
   equivalent of the old JS `renderProductCard()`
-- Every `index.html` and `shop.html` link across the site now points to
-  `index.php` / `shop.php`
+- Every `index.html`, `shop.html`, and `product.html` link across the
+  site now points to `index.php` / `shop.php` / `product.php`
 
 **How the cart/wishlist bridge works right now:** cart and wishlist still
 live in `localStorage` (real server-side sessions are a later step).
@@ -176,11 +184,18 @@ wishlist/search/quick-view functions keep working unchanged. Wishlist
 "heart" icons can't be rendered correctly server-side (the state is in
 the browser), so cards render as "not wishlisted" and
 `assets/js/common.js`'s `syncWishlistUI()` corrects them right after the
-page loads (and again after every filter/sort re-render on `shop.php`).
+page loads (and again after every filter/sort re-render on `shop.php`);
+`product.php`'s own wishlist button is corrected the same way via
+`updateWishBtn()`.
+
+**Product reviews note:** the Reviews tab on `product.php` still shows 3
+static sample reviews (same as the original design) — there's no
+`product_reviews` table yet. A real reviews system is a good candidate
+for a future migration + model if wanted.
 
 **Remaining steps:**
-1. Convert `product.html`, `about.html`, `contact.html` to `.php`, using
-   the same header/navbar/footer/product-card includes
+1. Convert `about.html`, `contact.html` to `.php` (currently referenced
+   in the nav/footer but don't exist yet as either `.html` or `.php`)
 2. Real cart/session handling (PHP sessions + `carts`/`cart_items`
    tables instead of `localStorage`) — once this lands, the `PRODUCTS`
    JS bridge can shrink since more of the cart logic moves server-side

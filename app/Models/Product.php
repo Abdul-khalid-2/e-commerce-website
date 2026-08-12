@@ -26,6 +26,19 @@ final class Product extends Model
         return $product ? self::withRelations($product) : null;
     }
 
+    /**
+     * Fallback for when no valid id/slug is given — the lowest-id active
+     * product, with relations attached.
+     */
+    public static function first(): ?array
+    {
+        $stmt = static::db()->query(
+            'SELECT * FROM products WHERE is_active = 1 ORDER BY id ASC LIMIT 1'
+        );
+        $product = $stmt->fetch();
+        return $product ? self::withRelations($product) : null;
+    }
+
     public static function findBySlug(string $slug): ?array
     {
         $stmt = static::db()->prepare('SELECT * FROM products WHERE slug = :slug LIMIT 1');

@@ -66,7 +66,7 @@ if (!function_exists('render_product_card')) {
           <div class="product-img-wrap">
             <?php if ($badge): ?><span class="product-badge"><?= $badge ?></span><?php endif; ?>
             <?php if ($discount > 0): ?><span class="product-discount">-<?= $discount ?>%</span><?php endif; ?>
-            <a href="product.html?id=<?= $id ?>"><img src="<?= $image ?>" alt="<?= $name ?>" loading="lazy"></a>
+            <a href="product.php?id=<?= $id ?>"><img src="<?= $image ?>" alt="<?= $name ?>" loading="lazy"></a>
             <div class="product-actions">
               <button class="product-action-btn" onclick="openQuickView(<?= $id ?>)" title="Quick View"><i class="bi bi-eye"></i></button>
               <button class="product-action-btn wish-btn" onclick="toggleWishlist(<?= $id ?>); refreshWishBtn(this, <?= $id ?>)" title="Wishlist"><i class="bi bi-heart"></i></button>
@@ -75,7 +75,7 @@ if (!function_exists('render_product_card')) {
           </div>
           <div class="product-body">
             <span class="product-cat-tag"><?= $category ?></span>
-            <h6 class="product-name"><a href="product.html?id=<?= $id ?>"><?= $name ?></a></h6>
+            <h6 class="product-name"><a href="product.php?id=<?= $id ?>"><?= $name ?></a></h6>
             <div class="mb-2"><?= render_stars((float) $p['rating']) ?><span class="rating-text">(<?= (int) $p['reviews_count'] ?>)</span></div>
             <div>
               <span class="product-price"><?= format_pkr($price) ?></span>

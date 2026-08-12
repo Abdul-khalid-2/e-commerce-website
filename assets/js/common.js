@@ -93,7 +93,7 @@ function renderProductCard(p, listView = false) {
       <div class="product-img-wrap">
         ${p.badge ? `<span class="product-badge">${p.badge}</span>` : ''}
         ${discount > 0 ? `<span class="product-discount">-${discount}%</span>` : ''}
-        <a href="product.html?id=${p.id}"><img src="${p.images[0]}" alt="${p.name}" loading="lazy"></a>
+        <a href="product.php?id=${p.id}"><img src="${p.images[0]}" alt="${p.name}" loading="lazy"></a>
         <div class="product-actions">
           <button class="product-action-btn" onclick="openQuickView(${p.id})" title="Quick View"><i class="bi bi-eye"></i></button>
           <button class="product-action-btn ${wished ? 'active' : ''}" onclick="toggleWishlist(${p.id}); refreshWishBtn(this, ${p.id})" title="Wishlist"><i class="bi bi-heart${wished ? '-fill' : ''}"></i></button>
@@ -102,7 +102,7 @@ function renderProductCard(p, listView = false) {
       </div>
       <div class="product-body">
         <span class="product-cat-tag">${p.category}</span>
-        <h6 class="product-name"><a href="product.html?id=${p.id}">${p.name}</a></h6>
+        <h6 class="product-name"><a href="product.php?id=${p.id}">${p.name}</a></h6>
         <div class="mb-2">${stars}<span class="rating-text">(${p.reviews})</span></div>
         <div>
           <span class="product-price">${formatPKR(p.price)}</span>
@@ -174,7 +174,7 @@ function openQuickView(id) {
                 <p class="fs-7 text-muted-2 mb-3"><i class="bi bi-check-circle text-success"></i> ${p.stock > 0 ? `In Stock (${p.stock} available)` : 'Out of Stock'}</p>
                 <div class="d-flex gap-2">
                   <button class="btn-brand flex-grow-1" onclick="addToCart(${p.id}); bootstrap.Modal.getInstance(document.getElementById('quickViewModal')).hide();"><i class="bi bi-cart-plus me-1"></i> Add to Cart</button>
-                  <a href="product.html?id=${p.id}" class="btn-outline-brand">View Details</a>
+                  <a href="product.php?id=${p.id}" class="btn-outline-brand">View Details</a>
                 </div>
               </div>
             </div>
@@ -340,7 +340,7 @@ function handleSearch(query) {
   }
   const matches = PRODUCTS.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.category.toLowerCase().includes(query.toLowerCase())).slice(0, 6);
   const html = matches.length > 0
-    ? matches.map(p => `<div class="search-result-item" onclick="window.location.href='product.html?id=${p.id}'"><img src="${p.images[0]}" alt=""><div><div class="fw-600 fs-7">${p.name}</div><div class="text-brand fs-8">${formatPKR(p.price)}</div></div></div>`).join('')
+    ? matches.map(p => `<div class="search-result-item" onclick="window.location.href='product.php?id=${p.id}'"><img src="${p.images[0]}" alt=""><div><div class="fw-600 fs-7">${p.name}</div><div class="text-brand fs-8">${formatPKR(p.price)}</div></div></div>`).join('')
     : '<div class="p-3 text-muted-2 text-center fs-7">No products found</div>';
   results.forEach(r => { r.innerHTML = html; r.classList.add('show'); });
 }
