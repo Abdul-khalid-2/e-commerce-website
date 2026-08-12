@@ -222,8 +222,8 @@ function buildNavbar(activePage) {
         <li class="nav-item"><a class="nav-link-custom ${activePage==='fashion'?'active':''}" href="shop.php?category=Fashion">Fashion</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='home-living'?'active':''}" href="shop.php?category=Home & Living">Home & Living</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='beauty'?'active':''}" href="shop.php?category=Beauty">Beauty</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='about'?'active':''}" href="about.html">About</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='contact'?'active':''}" href="contact.html">Contact</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='about'?'active':''}" href="about.php">About</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='contact'?'active':''}" href="contact.php">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='orders'?'active':''}" href="orders.html">Track Order</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='admin'?'active':''}" href="admin/index.html">Admin</a></li>
       </ul>
@@ -248,8 +248,8 @@ function buildNavbar(activePage) {
         <li class="nav-item"><a class="nav-link-custom" href="shop.php?category=Fashion">Fashion</a></li>
         <li class="nav-item"><a class="nav-link-custom" href="shop.php?category=Home & Living">Home & Living</a></li>
         <li class="nav-item"><a class="nav-link-custom" href="shop.php?category=Beauty">Beauty</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='about'?'active':''}" href="about.html">About</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='contact'?'active':''}" href="contact.html">Contact</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='about'?'active':''}" href="about.php">About</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='contact'?'active':''}" href="contact.php">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='orders'?'active':''}" href="orders.html">Track Order</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='wishlist'?'active':''}" href="wishlist.html">Wishlist</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='admin'?'active':''}" href="admin/index.html">Admin</a></li>
@@ -286,8 +286,8 @@ function buildFooter() {
           <ul class="list-unstyled">
             <li class="mb-2"><a href="index.php">Home</a></li>
             <li class="mb-2"><a href="shop.php">Shop</a></li>
-            <li class="mb-2"><a href="about.html">About Us</a></li>
-            <li class="mb-2"><a href="contact.html">Contact</a></li>
+            <li class="mb-2"><a href="about.php">About Us</a></li>
+            <li class="mb-2"><a href="contact.php">Contact</a></li>
             <li class="mb-2"><a href="orders.html">Track Order</a></li>
           </ul>
         </div>

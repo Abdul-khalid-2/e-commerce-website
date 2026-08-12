@@ -54,8 +54,8 @@ function nav_active(string $key, string $activePage): string
 <?php foreach ($navCategories as $cat): ?>
         <li class="nav-item"><a class="nav-link-custom" href="<?= $basePath ?>shop.php?category=<?= urlencode($cat['name']) ?>"><?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?></a></li>
 <?php endforeach; ?>
-        <li class="nav-item"><a class="nav-link-custom <?= nav_active('about', $activePage) ?>" href="<?= $basePath ?>about.html">About</a></li>
-        <li class="nav-item"><a class="nav-link-custom <?= nav_active('contact', $activePage) ?>" href="<?= $basePath ?>contact.html">Contact</a></li>
+        <li class="nav-item"><a class="nav-link-custom <?= nav_active('about', $activePage) ?>" href="<?= $basePath ?>about.php">About</a></li>
+        <li class="nav-item"><a class="nav-link-custom <?= nav_active('contact', $activePage) ?>" href="<?= $basePath ?>contact.php">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('orders', $activePage) ?>" href="<?= $basePath ?>orders.html">Track Order</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('admin', $activePage) ?>" href="<?= $basePath ?>admin/index.html">Admin</a></li>
       </ul>
@@ -79,8 +79,8 @@ function nav_active(string $key, string $activePage): string
 <?php foreach ($navCategories as $cat): ?>
         <li class="nav-item"><a class="nav-link-custom" href="<?= $basePath ?>shop.php?category=<?= urlencode($cat['name']) ?>"><?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?></a></li>
 <?php endforeach; ?>
-        <li class="nav-item"><a class="nav-link-custom <?= nav_active('about', $activePage) ?>" href="<?= $basePath ?>about.html">About</a></li>
-        <li class="nav-item"><a class="nav-link-custom <?= nav_active('contact', $activePage) ?>" href="<?= $basePath ?>contact.html">Contact</a></li>
+        <li class="nav-item"><a class="nav-link-custom <?= nav_active('about', $activePage) ?>" href="<?= $basePath ?>about.php">About</a></li>
+        <li class="nav-item"><a class="nav-link-custom <?= nav_active('contact', $activePage) ?>" href="<?= $basePath ?>contact.php">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('orders', $activePage) ?>" href="<?= $basePath ?>orders.html">Track Order</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('wishlist', $activePage) ?>" href="<?= $basePath ?>wishlist.html">Wishlist</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('admin', $activePage) ?>" href="<?= $basePath ?>admin/index.html">Admin</a></li>

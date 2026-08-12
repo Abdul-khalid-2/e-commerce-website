@@ -175,6 +175,11 @@ design.
   equivalent of the old JS `renderProductCard()`
 - Every `index.html`, `shop.html`, and `product.html` link across the
   site now points to `index.php` / `shop.php` / `product.php`
+- `about.php`, `contact.php` — new pages (didn't exist as `.html`
+  before; the nav/footer links were dead until now). About page shows
+  live stats pulled from the database (category count, trust badges);
+  Contact page pulls the store's phone/email from the `settings` table
+  and has a contact form (client-side only for now — see note below)
 
 **How the cart/wishlist bridge works right now:** cart and wishlist still
 live in `localStorage` (real server-side sessions are a later step).
@@ -193,17 +198,20 @@ static sample reviews (same as the original design) — there's no
 `product_reviews` table yet. A real reviews system is a good candidate
 for a future migration + model if wanted.
 
+**Contact form note:** `contact.php`'s form currently only shows a
+success toast client-side — there's no `contact_messages` table or POST
+handler yet. Worth adding as a small future migration + model if you
+want submissions actually saved/emailed.
+
 **Remaining steps:**
-1. Convert `about.html`, `contact.html` to `.php` (currently referenced
-   in the nav/footer but don't exist yet as either `.html` or `.php`)
-2. Real cart/session handling (PHP sessions + `carts`/`cart_items`
+1. Real cart/session handling (PHP sessions + `carts`/`cart_items`
    tables instead of `localStorage`) — once this lands, the `PRODUCTS`
    JS bridge can shrink since more of the cart logic moves server-side
-3. Convert `login.html` to `.php` with real authentication against the
+2. Convert `login.html` to `.php` with real authentication against the
    `users` table
-4. Admin CRUD (`admin/products.php`, `admin/categories.php`,
+3. Admin CRUD (`admin/products.php`, `admin/categories.php`,
    `admin/orders.php`, etc.) with real persistence + authentication
-5. Checkout → orders table, order status updates reflected on the
+4. Checkout → orders table, order status updates reflected on the
    customer-facing Orders/Track Order page
 
 Requires the `mbstring` PHP extension (bundled with XAMPP/Laragon by

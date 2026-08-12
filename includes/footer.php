@@ -37,8 +37,8 @@ $contactEmail = Setting::get('contact_email', 'support@shopmate.pk');
           <ul class="list-unstyled">
             <li class="mb-2"><a href="<?= $basePath ?>index.php">Home</a></li>
             <li class="mb-2"><a href="<?= $basePath ?>shop.php">Shop</a></li>
-            <li class="mb-2"><a href="<?= $basePath ?>about.html">About Us</a></li>
-            <li class="mb-2"><a href="<?= $basePath ?>contact.html">Contact</a></li>
+            <li class="mb-2"><a href="<?= $basePath ?>about.php">About Us</a></li>
+            <li class="mb-2"><a href="<?= $basePath ?>contact.php">Contact</a></li>
             <li class="mb-2"><a href="<?= $basePath ?>orders.html">Track Order</a></li>
           </ul>
         </div>
