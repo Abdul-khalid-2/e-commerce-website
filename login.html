@@ -58,7 +58,7 @@
               </div>
             </div>
           </div>
-          <p class="text-center text-muted-2 mt-3 fs-7"><a href="index.html" class="text-brand"><i class="bi bi-arrow-left"></i> Back to home</a></p>
+          <p class="text-center text-muted-2 mt-3 fs-7"><a href="index.php" class="text-brand"><i class="bi bi-arrow-left"></i> Back to home</a></p>
         </div>
       </div>
     </div>
@@ -87,7 +87,7 @@
         if (!email || !pass) { showToast('Please fill all fields'); return; }
         if (pass.length < 6) { showToast('Password must be at least 6 characters'); return; }
         showToast('Login successful! Redirecting...', 'success');
-        setTimeout(() => window.location.href = 'index.html', 1500);
+        setTimeout(() => window.location.href = 'index.php', 1500);
       }
       function handleSignup() {
         const name = document.getElementById('signupName').value.trim();
@@ -98,7 +98,7 @@
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Please enter a valid email'); return; }
         if (pass.length < 6) { showToast('Password must be at least 6 characters'); return; }
         showToast('Account created successfully!', 'success');
-        setTimeout(() => window.location.href = 'index.html', 1500);
+        setTimeout(() => window.location.href = 'index.php', 1500);
       }
       initCommon('login');
     </script>

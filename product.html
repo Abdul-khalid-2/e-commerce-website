@@ -42,7 +42,7 @@
       function renderProduct() {
         const discount = product.oldPrice ? Math.round((1 - product.price / product.oldPrice) * 100) : 0;
         document.getElementById('breadcrumb').innerHTML = `
-          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+          <li class="breadcrumb-item"><a href="index.php">Home</a></li>
           <li class="breadcrumb-item"><a href="shop.html?category=${encodeURIComponent(product.category)}">${product.category}</a></li>
           <li class="breadcrumb-item active">${product.name}</li>`;
 

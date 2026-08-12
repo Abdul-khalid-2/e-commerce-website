@@ -47,6 +47,18 @@ final class Product extends Model
     }
 
     /**
+     * Same as allActive() but with images/colors/sizes/specs attached to
+     * every row. Fine for a small catalog (a handful of extra queries per
+     * product); avoid calling this for large result sets.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function allActiveWithRelations(?int $limit = null): array
+    {
+        return array_map([self::class, 'withRelations'], self::allActive($limit));
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public static function byCategory(int $categoryId): array

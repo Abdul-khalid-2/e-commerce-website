@@ -119,6 +119,17 @@ function refreshWishBtn(btn, id) {
   btn.querySelector('i').className = 'bi bi-heart' + (wished ? '-fill' : '');
 }
 
+// For server-rendered product cards (PHP pages): wishlist state lives in
+// localStorage, so every card starts as "not wishlisted" in the markup.
+// This corrects the heart icons after the page loads.
+function syncWishlistUI() {
+  document.querySelectorAll('.product-card[data-id]').forEach(card => {
+    const id = parseInt(card.dataset.id, 10);
+    const btn = card.querySelector('.wish-btn');
+    if (btn) refreshWishBtn(btn, id);
+  });
+}
+
 function renderStars(rating) {
   let html = '<span class="rating-stars">';
   for (let i = 1; i <= 5; i++) {
@@ -188,7 +199,7 @@ function buildNavbar(activePage) {
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">
         <i class="bi bi-list fs-4"></i>
       </button>
-      <a class="navbar-brand-text d-flex align-items-center gap-2" href="index.html">
+      <a class="navbar-brand-text d-flex align-items-center gap-2" href="index.php">
         <i class="bi bi-bag-check-fill"></i> ShopMate
       </a>
       <div class="search-wrap d-none d-lg-block mx-3">
@@ -205,7 +216,7 @@ function buildNavbar(activePage) {
     </div>
     <div class="container d-none d-lg-block">
       <ul class="navbar-nav flex-row gap-1 mt-2 pb-1">
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='home'?'active':''}" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='home'?'active':''}" href="index.php">Home</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='shop'?'active':''}" href="shop.html">Shop</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='electronics'?'active':''}" href="shop.html?category=Electronics">Electronics</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='fashion'?'active':''}" href="shop.html?category=Fashion">Fashion</a></li>
@@ -231,7 +242,7 @@ function buildNavbar(activePage) {
         <div class="search-results" id="searchResultsMobile"></div>
       </div>
       <ul class="navbar-nav">
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='home'?'active':''}" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='home'?'active':''}" href="index.php">Home</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='shop'?'active':''}" href="shop.html">Shop</a></li>
         <li class="nav-item"><a class="nav-link-custom" href="shop.html?category=Electronics">Electronics</a></li>
         <li class="nav-item"><a class="nav-link-custom" href="shop.html?category=Fashion">Fashion</a></li>
@@ -273,7 +284,7 @@ function buildFooter() {
         <div class="col-lg-2 col-md-3 col-6">
           <h5>Quick Links</h5>
           <ul class="list-unstyled">
-            <li class="mb-2"><a href="index.html">Home</a></li>
+            <li class="mb-2"><a href="index.php">Home</a></li>
             <li class="mb-2"><a href="shop.html">Shop</a></li>
             <li class="mb-2"><a href="about.html">About Us</a></li>
             <li class="mb-2"><a href="contact.html">Contact</a></li>
@@ -377,6 +388,19 @@ function initCommon(activePage) {
   buildFooter();
   updateCartCount();
   updateWishlistCount();
+  initScrollEffects();
+  if (window.AOS) AOS.init({ duration: 700, once: true, offset: 60 });
+}
+
+// For PHP pages: navbar/footer are already server-rendered by
+// includes/navbar.php + includes/footer.php, so this skips
+// buildNavbar()/buildFooter() and only wires up the client-side bits
+// (theme, cart/wishlist badges, scroll effects, AOS).
+function initCommonPhp() {
+  initTheme();
+  updateCartCount();
+  updateWishlistCount();
+  syncWishlistUI();
   initScrollEffects();
   if (window.AOS) AOS.init({ duration: 700, once: true, offset: 60 });
 }

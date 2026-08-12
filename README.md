@@ -147,18 +147,44 @@ ALTER TABLE products ADD COLUMN sku VARCHAR(50) NULL AFTER slug;
 
 Then just run `php database/migrate.php` again.
 
-## Next phase: PHP conversion (planned)
+## Next phase: PHP conversion (in progress)
 
 Goal: turn this into a dynamic PHP + MySQL app without changing the visual
-design. Remaining steps:
+design.
 
-1. `includes/header.php`, `includes/footer.php`, `includes/navbar.php` —
-   shared markup, replacing the `common.js`-generated navbar/footer
-2. Convert `.html` pages to `.php`, pulling data from the DB (via the
-   Models) instead of the static JS arrays
-3. Real cart/session handling (PHP sessions + `carts`/`cart_items` tables
-   instead of `localStorage`)
+**Done:**
+- `index.php` — homepage converted, pulls hero slides, trust badges,
+  categories, featured products, best sellers, and testimonials from the
+  database via the Models
+- `includes/header.php`, `includes/navbar.php`, `includes/footer.php` —
+  shared markup, replacing the old `common.js`-generated navbar/footer.
+  The navbar's category links are now live from the database.
+- `includes/product-card.php` — shared `render_product_card()`, the PHP
+  equivalent of the old JS `renderProductCard()`
+- Every `index.html` link across the site now points to `index.php`
+
+**How the cart/wishlist bridge works right now:** cart and wishlist still
+live in `localStorage` (real server-side sessions are a later step).
+`index.php` still emits a `PRODUCTS` JS array — built from the database
+on every request — so `assets/js/common.js`'s existing cart/wishlist/
+search/quick-view functions keep working unchanged. Wishlist "heart"
+icons can't be rendered correctly server-side (the state is in the
+browser), so cards render as "not wishlisted" and
+`assets/js/common.js`'s `syncWishlistUI()` corrects them right after the
+page loads.
+
+**Remaining steps:**
+1. Convert `shop.html`, `product.html`, `about.html`, `contact.html` to
+   `.php`, using the same header/navbar/footer/product-card includes
+2. Real cart/session handling (PHP sessions + `carts`/`cart_items`
+   tables instead of `localStorage`) — once this lands, the `PRODUCTS`
+   JS bridge can shrink since more of the cart logic moves server-side
+3. Convert `login.html` to `.php` with real authentication against the
+   `users` table
 4. Admin CRUD (`admin/products.php`, `admin/categories.php`,
    `admin/orders.php`, etc.) with real persistence + authentication
 5. Checkout → orders table, order status updates reflected on the
    customer-facing Orders/Track Order page
+
+Requires the `mbstring` PHP extension (bundled with XAMPP/Laragon by
+default; on bare Linux install `php-mbstring`).
