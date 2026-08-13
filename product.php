@@ -299,9 +299,9 @@ require __DIR__ . '/includes/navbar.php';
       function addProductToCart() {
         addToCart(product.id, selectedQty, { color: selectedColor, size: selectedSize });
       }
-      function buyNow() {
-        addToCart(product.id, selectedQty, { color: selectedColor, size: selectedSize });
-        window.location.href = 'checkout.html';
+      async function buyNow() {
+        await addToCart(product.id, selectedQty, { color: selectedColor, size: selectedSize });
+        window.location.href = 'checkout.php';
       }
       function updateWishBtn() {
         const wished = isWishlisted(product.id);

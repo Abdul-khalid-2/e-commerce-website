@@ -180,6 +180,38 @@ design.
   live stats pulled from the database (category count, trust badges);
   Contact page pulls the store's phone/email from the `settings` table
   and has a contact form (client-side only for now — see note below)
+- **Real cart + sessions.** `cart.php`, `checkout.php`, `login.php`,
+  `orders.php`, `wishlist.php` (shell only — see note below) are fully
+  converted. The cart no longer lives in `localStorage` — it's backed
+  by the `carts`/`cart_items` tables, identified by the PHP session, so
+  it works for guests immediately and survives login (a guest's cart
+  merges into their account cart on login/signup, see
+  `Cart::mergeSessionIntoUser()`). Two new JSON endpoints power this:
+  `api/cart.php` (add/update/remove/clear/count) and
+  `api/place-order.php` (creates a real order from the current cart,
+  server-computed totals — never trusts anything from the client).
+- `login.php` — real authentication against the `users` table
+  (`password_hash`/`password_verify`, never plain text), with a proper
+  signup flow and session regeneration on login (mitigates session
+  fixation). `logout.php` added to go with it. The navbar now shows
+  "Hi, {name}" with an account dropdown when logged in, or a Login
+  button otherwise, and the cart badge count is computed server-side on
+  every page load (`includes/navbar.php`) instead of via a client-side
+  fetch.
+- `orders.php` — real order lookup by order number (`?number=...`),
+  with a real status timeline. Works for guests too: the session
+  remembers order numbers placed during that visit
+  (`$_SESSION['recent_orders']`), and if logged in, the account's full
+  order history is also shown.
+
+**Wishlist stays client-side (localStorage) for now, by design.** The
+`wishlists` table requires a logged-in `user_id`, but the original site
+let anyone use the wishlist without logging in. Converting it properly
+would mean either requiring login for wishlist (a UX change) or adding
+guest/session support to the `wishlists` table (a schema change) —
+deferred rather than done as a rushed side effect of this pass.
+`wishlist.php`'s page shell (header/navbar/footer, product data source)
+is converted; the wishlist mechanism itself is unchanged.
 
 **How the cart/wishlist bridge works right now:** cart and wishlist still
 live in `localStorage` (real server-side sessions are a later step).
@@ -204,15 +236,18 @@ handler yet. Worth adding as a small future migration + model if you
 want submissions actually saved/emailed.
 
 **Remaining steps:**
-1. Real cart/session handling (PHP sessions + `carts`/`cart_items`
-   tables instead of `localStorage`) — once this lands, the `PRODUCTS`
-   JS bridge can shrink since more of the cart logic moves server-side
-2. Convert `login.html` to `.php` with real authentication against the
-   `users` table
-3. Admin CRUD (`admin/products.php`, `admin/categories.php`,
-   `admin/orders.php`, etc.) with real persistence + authentication
-4. Checkout → orders table, order status updates reflected on the
-   customer-facing Orders/Track Order page
+1. Move the wishlist to the database for logged-in users (see note
+   above) — likely as an optional upgrade path: keep localStorage for
+   guests, sync to the `wishlists` table once logged in
+2. Admin CRUD (`admin/products.php`, `admin/categories.php`,
+   `admin/orders.php`, etc.) with real persistence + authentication —
+   the `users.role = 'admin'` check is already there (see the seeded
+   admin account), just needs the admin pages converted to use it
+3. Order status updates from the admin panel, reflected live on
+   `orders.php`
+4. `api/cart.php` and `api/place-order.php` currently trust the PHP
+   session alone; consider adding CSRF tokens to the checkout form once
+   the site has a real deployment target
 
 Requires the `mbstring` PHP extension (bundled with XAMPP/Laragon by
 default; on bare Linux install `php-mbstring`).

@@ -1,23 +1,46 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Checkout - ShopMate Pakistan</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-  </head>
-  <body>
-    <div id="navbar"></div>
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/config/bootstrap.php';
+
+use App\Models\Cart;
+
+$pageTitle = 'Checkout - ShopMate Pakistan';
+$activePage = 'cart';
+$basePath = '';
+
+$userId = $_SESSION['user_id'] ?? null;
+$cart = Cart::peekForSession(session_id(), $userId);
+$cartId = $cart ? (int) $cart['id'] : null;
+$items = $cartId ? Cart::getItemsWithProduct($cartId) : [];
+$subtotal = $cartId ? Cart::getSubtotal($cartId) : 0.0;
+
+$cartItemsForJs = array_map(static function (array $i): array {
+    return [
+        'item_id' => (int) $i['item_id'],
+        'product_id' => (int) $i['product_id'],
+        'name' => $i['name'],
+        'price' => (float) $i['price'],
+        'qty' => (int) $i['qty'],
+        'color' => $i['color'],
+        'size' => $i['size'],
+        'image' => $i['image'],
+    ];
+}, $items);
+
+$prefillName = $_SESSION['user_name'] ?? '';
+$prefillEmail = $_SESSION['user_email'] ?? '';
+
+require __DIR__ . '/includes/header.php';
+require __DIR__ . '/includes/navbar.php';
+?>
 
     <div class="container section-pad pb-3">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-custom">
           <li class="breadcrumb-item"><a href="index.php">Home</a></li>
-          <li class="breadcrumb-item"><a href="cart.html">Cart</a></li>
+          <li class="breadcrumb-item"><a href="cart.php">Cart</a></li>
           <li class="breadcrumb-item active">Checkout</li>
         </ol>
       </nav>
@@ -28,16 +51,23 @@
       <div id="checkoutContent"></div>
     </div>
 
-    <div id="footer"></div>
+<?php require __DIR__ . '/includes/footer.php'; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="assets/js/data.js"></script>
     <script src="assets/js/common.js"></script>
     <script>
+      const PAKISTAN_CITIES = ["Karachi","Lahore","Islamabad","Rawalpindi","Faisalabad","Multan","Peshawar","Quetta","Hyderabad","Sialkot","Gujranwala","Bahawalpur","Sukkur","Mardan","Sargodha"];
+      const cart = <?= json_encode($cartItemsForJs, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+      const prefillName = <?= json_encode($prefillName, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+      const prefillEmail = <?= json_encode($prefillEmail, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
       let step = 1;
       let selectedPayment = 'cod';
-      const cart = getCart();
+
+      function cartSubtotal() {
+        return cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      }
 
       function renderCheckout() {
         if (cart.length === 0) {
@@ -51,7 +81,7 @@
           return;
         }
 
-        const subtotal = getCartTotal();
+        const subtotal = cartSubtotal();
         const shipping = subtotal > 2000 ? 0 : 200;
         const total = subtotal + shipping;
 
@@ -83,18 +113,14 @@
             <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
               <div class="summary-card">
                 <h5 class="fw-700 mb-3">Order Summary</h5>
-                ${cart.map(item => {
-                  const p = PRODUCTS.find(x => x.id === item.id);
-                  if (!p) return '';
-                  return `<div class="d-flex gap-2 mb-2 align-items-center">
-                    <img src="${p.images[0]}" style="width:50px;height:50px;border-radius:8px;object-fit:cover;">
+                ${cart.map(item => `<div class="d-flex gap-2 mb-2 align-items-center">
+                    <img src="${item.image || ''}" style="width:50px;height:50px;border-radius:8px;object-fit:cover;">
                     <div class="flex-grow-1">
-                      <div class="fs-7 fw-600">${p.name}</div>
+                      <div class="fs-7 fw-600">${item.name}</div>
                       <small class="text-muted-2">Qty: ${item.qty}</small>
                     </div>
-                    <div class="fs-7 fw-600 text-brand">${formatPKR(p.price * item.qty)}</div>
-                  </div>`;
-                }).join('')}
+                    <div class="fs-7 fw-600 text-brand">${formatPKR(item.price * item.qty)}</div>
+                  </div>`).join('')}
                 <hr class="border-soft">
                 <div class="summary-row"><span>Subtotal</span><span>${formatPKR(subtotal)}</span></div>
                 <div class="summary-row"><span>Shipping</span><span>${shipping === 0 ? 'FREE' : formatPKR(shipping)}</span></div>
@@ -111,9 +137,9 @@
           content.innerHTML = `
             <h5 class="fw-700 mb-3">Shipping Information</h5>
             <div class="row g-3">
-              <div class="col-md-6"><label class="form-label">Full Name *</label><input type="text" class="form-control" id="fullName" required></div>
+              <div class="col-md-6"><label class="form-label">Full Name *</label><input type="text" class="form-control" id="fullName" value="${prefillName.replace(/"/g,'&quot;')}" required></div>
               <div class="col-md-6"><label class="form-label">Phone Number *</label><input type="tel" class="form-control" id="phone" placeholder="03XX-XXXXXXX" required></div>
-              <div class="col-12"><label class="form-label">Email Address</label><input type="email" class="form-control" id="email" placeholder="you@example.com"></div>
+              <div class="col-12"><label class="form-label">Email Address</label><input type="email" class="form-control" id="email" value="${prefillEmail.replace(/"/g,'&quot;')}" placeholder="you@example.com"></div>
               <div class="col-12"><label class="form-label">Street Address *</label><input type="text" class="form-control" id="address" required></div>
               <div class="col-md-6"><label class="form-label">City *</label>
                 <select class="form-select" id="city" required>
@@ -135,7 +161,7 @@
                 { id: 'cod', icon: 'bi-cash-coin', name: 'Cash on Delivery', desc: 'Pay when you receive your order' },
                 { id: 'jazzcash', icon: 'bi-wallet2', name: 'JazzCash', desc: 'Pay via JazzCash mobile wallet' },
                 { id: 'easypaisa', icon: 'bi-wallet', name: 'EasyPaisa', desc: 'Pay via EasyPaisa mobile wallet' },
-                { id: 'bank', icon: 'bi-bank', name: 'Bank Transfer', desc: 'Transfer to our bank account' },
+                { id: 'bank_transfer', icon: 'bi-bank', name: 'Bank Transfer', desc: 'Transfer to our bank account' },
                 { id: 'card', icon: 'bi-credit-card', name: 'Credit/Debit Card', desc: 'Visa, Mastercard, UnionPay' }
               ].map(opt => `
                 <div class="payment-option ${selectedPayment === opt.id ? 'selected' : ''}" onclick="selectPayment('${opt.id}')">
@@ -158,7 +184,7 @@
           const phone = document.getElementById('phone').value;
           const address = document.getElementById('address').value;
           const city = document.getElementById('city').value;
-          const paymentName = { cod: 'Cash on Delivery', jazzcash: 'JazzCash', easypaisa: 'EasyPaisa', bank: 'Bank Transfer', card: 'Credit/Debit Card' }[selectedPayment];
+          const paymentName = { cod: 'Cash on Delivery', jazzcash: 'JazzCash', easypaisa: 'EasyPaisa', bank_transfer: 'Bank Transfer', card: 'Credit/Debit Card' }[selectedPayment];
           content.innerHTML = `
             <h5 class="fw-700 mb-3">Review Your Order</h5>
             <div class="row g-3">
@@ -176,30 +202,26 @@
               </div>
               <div class="col-12">
                 <h6 class="fw-700 mb-2">Items (${cart.reduce((n,i)=>n+i.qty,0)})</h6>
-                ${cart.map(item => {
-                  const p = PRODUCTS.find(x => x.id === item.id);
-                  if (!p) return '';
-                  return `<div class="d-flex justify-content-between align-items-center py-2 border-soft border-bottom">
+                ${cart.map(item => `<div class="d-flex justify-content-between align-items-center py-2 border-soft border-bottom">
                     <div class="d-flex gap-2 align-items-center">
-                      <img src="${p.images[0]}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;">
-                      <span class="fs-7">${p.name} x${item.qty}</span>
+                      <img src="${item.image || ''}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;">
+                      <span class="fs-7">${item.name} x${item.qty}</span>
                     </div>
-                    <span class="fs-7 fw-600">${formatPKR(p.price * item.qty)}</span>
-                  </div>`;
-                }).join('')}
+                    <span class="fs-7 fw-600">${formatPKR(item.price * item.qty)}</span>
+                  </div>`).join('')}
               </div>
             </div>
             <div class="d-flex justify-content-between mt-4">
               <button class="btn-outline-brand" onclick="step=2; renderCheckout();"><i class="bi bi-arrow-left me-1"></i> Back</button>
-              <button class="btn-accent btn-lg" onclick="placeOrder()"><i class="bi bi-bag-check me-1"></i> Place Order</button>
+              <button class="btn-accent btn-lg" id="placeOrderBtn" onclick="placeOrder()"><i class="bi bi-bag-check me-1"></i> Place Order</button>
             </div>`;
         }
       }
 
       function selectPayment(id) {
         selectedPayment = id;
+        const opts = ['cod','jazzcash','easypaisa','bank_transfer','card'];
         document.querySelectorAll('.payment-option').forEach((el, i) => {
-          const opts = ['cod','jazzcash','easypaisa','bank','card'];
           el.classList.toggle('selected', opts[i] === id);
           el.querySelector('.bi-check-circle-fill').style.opacity = opts[i] === id ? '1' : '0';
           el.querySelector('.bi-check-circle-fill').className = 'bi bi-check-circle-fill ' + (opts[i] === id ? 'text-brand' : '');
@@ -217,7 +239,7 @@
             </div></div>`;
         } else if (selectedPayment === 'jazzcash' || selectedPayment === 'easypaisa') {
           detail.innerHTML = `<div class="bg-soft p-3 rounded border-soft"><small class="text-muted-2">You will receive a payment request on your mobile number after placing the order.</small></div>`;
-        } else if (selectedPayment === 'bank') {
+        } else if (selectedPayment === 'bank_transfer') {
           detail.innerHTML = `<div class="bg-soft p-3 rounded border-soft"><small class="text-muted-2">Bank: HBL, Account: 0011223344556, Title: ShopMate Pakistan. Upload receipt to confirm.</small></div>`;
         } else {
           detail.innerHTML = '';
@@ -238,24 +260,53 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      function placeOrder() {
-        const orderNum = 'ORD-' + Math.floor(10000 + Math.random() * 90000);
-        document.getElementById('checkoutContent').innerHTML = `
-          <div class="text-center py-5" data-aos="zoom-in">
-            <div class="success-check"><i class="bi bi-check-lg"></i></div>
-            <h2 class="fw-700 mb-2">Order Placed Successfully!</h2>
-            <p class="text-muted-2 mb-3">Thank you for your purchase. Your order number is:</p>
-            <h3 class="text-brand fw-800 mb-4">${orderNum}</h3>
-            <p class="text-muted-2 mb-4">We've sent a confirmation to your phone. Expected delivery: 3-5 business days.</p>
-            <div class="d-flex justify-content-center gap-2 flex-wrap">
-              <a href="orders.html" class="btn-brand"><i class="bi bi-truck me-1"></i> Track Your Order</a>
-              <a href="shop.php" class="btn-outline-brand">Continue Shopping</a>
-            </div>
-          </div>`;
-        setCart([]);
+      async function placeOrder() {
+        const btn = document.getElementById('placeOrderBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Placing Order...';
+
+        const payload = new URLSearchParams({
+          customer_name: document.getElementById('fullName').value,
+          customer_phone: document.getElementById('phone').value,
+          customer_email: document.getElementById('email').value,
+          shipping_address: document.getElementById('address').value,
+          city: document.getElementById('city').value,
+          postal_code: document.getElementById('postal').value,
+          payment_method: selectedPayment,
+        });
+
+        try {
+          const res = await fetch('api/place-order.php', { method: 'POST', body: payload });
+          const data = await res.json();
+
+          if (!data.success) {
+            showToast(data.message || 'Could not place order');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-bag-check me-1"></i> Place Order';
+            return;
+          }
+
+          document.getElementById('checkoutContent').innerHTML = `
+            <div class="text-center py-5" data-aos="zoom-in">
+              <div class="success-check"><i class="bi bi-check-lg"></i></div>
+              <h2 class="fw-700 mb-2">Order Placed Successfully!</h2>
+              <p class="text-muted-2 mb-3">Thank you for your purchase. Your order number is:</p>
+              <h3 class="text-brand fw-700 mb-4">${data.order_number}</h3>
+              <p class="text-muted-2 mb-4">We've sent a confirmation to your phone. Expected delivery: 3-5 business days.</p>
+              <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a href="orders.php?number=${encodeURIComponent(data.order_number)}" class="btn-brand"><i class="bi bi-truck me-1"></i> Track Your Order</a>
+                <a href="shop.php" class="btn-outline-brand">Continue Shopping</a>
+              </div>
+            </div>`;
+          updateCartCount(0);
+        } catch (err) {
+          showToast('Network error - please try again');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-bag-check me-1"></i> Place Order';
+        }
       }
 
-      initCommon('cart');
+      initCommonPhp();
       renderCheckout();
     </script>
   </body>

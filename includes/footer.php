@@ -39,15 +39,15 @@ $contactEmail = Setting::get('contact_email', 'support@shopmate.pk');
             <li class="mb-2"><a href="<?= $basePath ?>shop.php">Shop</a></li>
             <li class="mb-2"><a href="<?= $basePath ?>about.php">About Us</a></li>
             <li class="mb-2"><a href="<?= $basePath ?>contact.php">Contact</a></li>
-            <li class="mb-2"><a href="<?= $basePath ?>orders.html">Track Order</a></li>
+            <li class="mb-2"><a href="<?= $basePath ?>orders.php">Track Order</a></li>
           </ul>
         </div>
         <div class="col-lg-2 col-md-3 col-6">
           <h5>Customer</h5>
           <ul class="list-unstyled">
-            <li class="mb-2"><a href="<?= $basePath ?>login.html">My Account</a></li>
-            <li class="mb-2"><a href="<?= $basePath ?>wishlist.html">Wishlist</a></li>
-            <li class="mb-2"><a href="<?= $basePath ?>cart.html">Cart</a></li>
+            <li class="mb-2"><a href="<?= $basePath ?>login.php">My Account</a></li>
+            <li class="mb-2"><a href="<?= $basePath ?>wishlist.php">Wishlist</a></li>
+            <li class="mb-2"><a href="<?= $basePath ?>cart.php">Cart</a></li>
             <li class="mb-2"><a href="#">Return Policy</a></li>
             <li class="mb-2"><a href="#">FAQs</a></li>
           </ul>

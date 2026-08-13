@@ -1,17 +1,44 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wishlist - ShopMate Pakistan</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-  </head>
-  <body>
-    <div id="navbar"></div>
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/config/bootstrap.php';
+
+use App\Models\Category;
+use App\Models\Product;
+
+$pageTitle = 'Wishlist - ShopMate Pakistan';
+$activePage = 'wishlist';
+$basePath = '';
+
+// Wishlist itself stays client-side (localStorage) for now — it doesn't
+// require login, matching the original design. See README for the plan
+// to move this to the wishlists table for logged-in users later.
+$categoryNameById = array_column(Category::active(), 'name', 'id');
+$allProducts = Product::allActiveWithRelations();
+
+$productsForJs = array_map(static function (array $p) use ($categoryNameById): array {
+    return [
+        'id' => (int) $p['id'],
+        'name' => $p['name'],
+        'category' => $categoryNameById[$p['category_id']] ?? '',
+        'brand' => $p['brand'],
+        'price' => (float) $p['price'],
+        'oldPrice' => $p['old_price'] !== null ? (float) $p['old_price'] : null,
+        'rating' => (float) $p['rating'],
+        'reviews' => (int) $p['reviews_count'],
+        'stock' => (int) $p['stock'],
+        'badge' => $p['badge'],
+        'images' => $p['images'],
+        'colors' => $p['colors'],
+        'sizes' => $p['sizes'],
+        'description' => $p['description'],
+    ];
+}, $allProducts);
+
+require __DIR__ . '/includes/header.php';
+require __DIR__ . '/includes/navbar.php';
+?>
 
     <div class="container section-pad pb-3">
       <nav aria-label="breadcrumb">
@@ -27,11 +54,13 @@
       <div id="wishlistContent"></div>
     </div>
 
-    <div id="footer"></div>
+<?php require __DIR__ . '/includes/footer.php'; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="assets/js/data.js"></script>
+    <script>
+      const PRODUCTS = <?= json_encode($productsForJs, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    </script>
     <script src="assets/js/common.js"></script>
     <script>
       function renderWishlist() {
@@ -58,6 +87,7 @@
             </div>`).join('')}
           </div>`;
         if (window.AOS) AOS.refresh();
+        syncWishlistUI();
       }
       function removeWish(id) {
         const w = getWishlist().filter(x => x !== id);
@@ -65,7 +95,7 @@
         renderWishlist();
         showToast('Removed from wishlist');
       }
-      initCommon('wishlist');
+      initCommonPhp();
       renderWishlist();
     </script>
   </body>

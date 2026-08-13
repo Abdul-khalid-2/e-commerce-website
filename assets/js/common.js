@@ -2,41 +2,53 @@
 
 const formatPKR = (n) => 'Rs. ' + Math.round(n).toLocaleString('en-PK');
 
-function getCart() {
-  try { return JSON.parse(localStorage.getItem('cart') || '[]'); } catch { return []; }
+// Cart lives server-side now (see api/cart.php + App\Models\Cart) so it
+// works correctly for both guests (session-based) and logged-in users,
+// and survives across devices once logged in. These functions talk to
+// that endpoint instead of localStorage.
+async function cartRequest(action, params = {}) {
+  const body = new URLSearchParams({ action, ...params });
+  const res = await fetch('api/cart.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  });
+  return res.json();
 }
-function setCart(c) { localStorage.setItem('cart', JSON.stringify(c)); updateCartCount(); }
+
+async function addToCart(productId, qty = 1, options = {}) {
+  const data = await cartRequest('add', {
+    product_id: productId,
+    qty,
+    color: options.color || '',
+    size: options.size || '',
+  });
+  if (data.success) {
+    showToast('Added to cart!', 'success');
+    updateCartCount(data.count);
+  } else {
+    showToast(data.message || 'Could not add to cart');
+  }
+  return data;
+}
+async function removeFromCartItem(itemId) {
+  return cartRequest('remove', { item_id: itemId });
+}
+async function updateCartItemQty(itemId, qty) {
+  return cartRequest('update', { item_id: itemId, qty: Math.max(1, qty) });
+}
+async function clearCartServer() {
+  return cartRequest('clear');
+}
+async function fetchCart() {
+  const res = await fetch('api/cart.php?action=items');
+  return res.json();
+}
+
 function getWishlist() {
   try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); } catch { return []; }
 }
 function setWishlist(w) { localStorage.setItem('wishlist', JSON.stringify(w)); updateWishlistCount(); }
-
-function addToCart(productId, qty = 1, options = {}) {
-  const cart = getCart();
-  const existing = cart.find(i => i.id === productId && JSON.stringify(i.options) === JSON.stringify(options));
-  if (existing) { existing.qty += qty; }
-  else { cart.push({ id: productId, qty, options }); }
-  setCart(cart);
-  showToast('Added to cart!', 'success');
-}
-function removeFromCart(index) {
-  const cart = getCart();
-  cart.splice(index, 1);
-  setCart(cart);
-}
-function updateCartQty(index, qty) {
-  const cart = getCart();
-  if (cart[index]) { cart[index].qty = Math.max(1, qty); setCart(cart); }
-}
-function getCartTotal() {
-  return getCart().reduce((sum, item) => {
-    const p = PRODUCTS.find(x => x.id === item.id);
-    return sum + (p ? p.price * item.qty : 0);
-  }, 0);
-}
-function getCartCount() {
-  return getCart().reduce((n, i) => n + i.qty, 0);
-}
 
 function toggleWishlist(productId) {
   const w = getWishlist();
@@ -48,9 +60,17 @@ function toggleWishlist(productId) {
 }
 function isWishlisted(productId) { return getWishlist().includes(productId); }
 
-function updateCartCount() {
+async function updateCartCount(countOverride) {
+  let count = countOverride;
+  if (count === undefined) {
+    try {
+      const data = await fetch('api/cart.php?action=count').then(r => r.json());
+      count = data.count || 0;
+    } catch {
+      count = 0;
+    }
+  }
   document.querySelectorAll('.cart-badge').forEach(el => {
-    const count = getCartCount();
     el.textContent = count;
     el.style.display = count > 0 ? 'flex' : 'none';
   });
@@ -209,9 +229,9 @@ function buildNavbar(activePage) {
       </div>
       <div class="d-flex align-items-center gap-1 ms-auto">
         <button class="theme-toggle d-none d-sm-inline-flex" onclick="toggleTheme()" title="Toggle theme"><i class="bi bi-moon-fill" id="themeIcon"></i></button>
-        <a href="wishlist.html" class="icon-btn" title="Wishlist"><i class="bi bi-heart"></i><span class="wishlist-badge" style="display:none">0</span></a>
-        <a href="cart.html" class="icon-btn" title="Cart"><i class="bi bi-cart3"></i><span class="cart-badge" style="display:none">0</span></a>
-        <a href="login.html" class="btn-brand d-none d-sm-inline-flex ms-2">Login</a>
+        <a href="wishlist.php" class="icon-btn" title="Wishlist"><i class="bi bi-heart"></i><span class="wishlist-badge" style="display:none">0</span></a>
+        <a href="cart.php" class="icon-btn" title="Cart"><i class="bi bi-cart3"></i><span class="cart-badge" style="display:none">0</span></a>
+        <a href="login.php" class="btn-brand d-none d-sm-inline-flex ms-2">Login</a>
       </div>
     </div>
     <div class="container d-none d-lg-block">
@@ -224,7 +244,7 @@ function buildNavbar(activePage) {
         <li class="nav-item"><a class="nav-link-custom ${activePage==='beauty'?'active':''}" href="shop.php?category=Beauty">Beauty</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='about'?'active':''}" href="about.php">About</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='contact'?'active':''}" href="contact.php">Contact</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='orders'?'active':''}" href="orders.html">Track Order</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='orders'?'active':''}" href="orders.php">Track Order</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='admin'?'active':''}" href="admin/index.html">Admin</a></li>
       </ul>
     </div>
@@ -250,12 +270,12 @@ function buildNavbar(activePage) {
         <li class="nav-item"><a class="nav-link-custom" href="shop.php?category=Beauty">Beauty</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='about'?'active':''}" href="about.php">About</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='contact'?'active':''}" href="contact.php">Contact</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='orders'?'active':''}" href="orders.html">Track Order</a></li>
-        <li class="nav-item"><a class="nav-link-custom ${activePage==='wishlist'?'active':''}" href="wishlist.html">Wishlist</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='orders'?'active':''}" href="orders.php">Track Order</a></li>
+        <li class="nav-item"><a class="nav-link-custom ${activePage==='wishlist'?'active':''}" href="wishlist.php">Wishlist</a></li>
         <li class="nav-item"><a class="nav-link-custom ${activePage==='admin'?'active':''}" href="admin/index.html">Admin</a></li>
         <li class="nav-item mt-3 d-flex gap-2">
           <button class="theme-toggle" onclick="toggleTheme()"><i class="bi bi-moon-fill" id="themeIconMobile"></i></button>
-          <a href="login.html" class="btn-brand w-100">Login / Signup</a>
+          <a href="login.php" class="btn-brand w-100">Login / Signup</a>
         </li>
       </ul>
     </div>
@@ -288,15 +308,15 @@ function buildFooter() {
             <li class="mb-2"><a href="shop.php">Shop</a></li>
             <li class="mb-2"><a href="about.php">About Us</a></li>
             <li class="mb-2"><a href="contact.php">Contact</a></li>
-            <li class="mb-2"><a href="orders.html">Track Order</a></li>
+            <li class="mb-2"><a href="orders.php">Track Order</a></li>
           </ul>
         </div>
         <div class="col-lg-2 col-md-3 col-6">
           <h5>Customer</h5>
           <ul class="list-unstyled">
-            <li class="mb-2"><a href="login.html">My Account</a></li>
-            <li class="mb-2"><a href="wishlist.html">Wishlist</a></li>
-            <li class="mb-2"><a href="cart.html">Cart</a></li>
+            <li class="mb-2"><a href="login.php">My Account</a></li>
+            <li class="mb-2"><a href="wishlist.php">Wishlist</a></li>
+            <li class="mb-2"><a href="cart.php">Cart</a></li>
             <li class="mb-2"><a href="#">Return Policy</a></li>
             <li class="mb-2"><a href="#">FAQs</a></li>
           </ul>
