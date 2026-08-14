@@ -144,10 +144,15 @@ Re-running `seed.php` is a safe no-op if data already exists; pass
 - [x] Customer list (orders + total spent per customer)
 - [x] Settings page (store name, contact info, free shipping threshold)
 
-### Phase 6 — Not done yet
-- [ ] **Wishlist → database.** Still `localStorage`-only because the
-      `wishlists` table requires a logged-in user. Plan: keep
-      `localStorage` for guests, sync to the database once logged in.
+### Phase 6 — In progress / not done yet
+- [x] **Wishlist → database for logged-in users.** Guests still use
+      `localStorage` (unchanged). Logged-in users get a real
+      database-backed wishlist (`wishlists` table, `app/Models/
+      Wishlist.php`, `api/wishlist.php`). A guest's localStorage
+      wishlist automatically merges into their account the moment
+      they're logged in (`loadWishlistFromServer()` in
+      `assets/js/common.js`), the same pattern already used for cart
+      merging on login.
 - [ ] **CSRF protection** on the checkout and admin forms — currently
       relies on the PHP session alone. Needed before any real deployment.
 - [ ] **Real product image uploads** in the admin panel. New/edited

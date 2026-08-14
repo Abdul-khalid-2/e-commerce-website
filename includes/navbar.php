@@ -34,6 +34,7 @@ function nav_active(string $key, string $activePage): string
     return $activePage === $key ? 'active' : '';
 }
 ?>
+  <script>window.IS_LOGGED_IN = <?= $currentUserId ? 'true' : 'false' ?>;</script>
   <nav class="navbar navbar-expand-lg navbar-custom sticky-top py-2">
     <div class="container">
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">

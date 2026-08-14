@@ -95,6 +95,8 @@ require __DIR__ . '/includes/navbar.php';
         renderWishlist();
         showToast('Removed from wishlist');
       }
+      function onWishlistLoaded() { renderWishlist(); }
+
       initCommonPhp();
       renderWishlist();
     </script>

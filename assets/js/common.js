@@ -45,20 +45,73 @@ async function fetchCart() {
   return res.json();
 }
 
-function getWishlist() {
+// Wishlist: guests use localStorage; logged-in users get a real
+// database-backed wishlist (see api/wishlist.php). To keep every
+// existing caller (onclick="toggleWishlist(id); refreshWishBtn(...)")
+// working unchanged, isWishlisted()/toggleWishlist() stay synchronous —
+// backed by an in-memory Set that's seeded from localStorage instantly
+// (so the UI never waits on a network round trip), then reconciled
+// with the server shortly after for logged-in users via
+// loadWishlistFromServer(), which re-renders anything already on screen.
+function getLocalWishlistIds() {
   try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); } catch { return []; }
 }
-function setWishlist(w) { localStorage.setItem('wishlist', JSON.stringify(w)); updateWishlistCount(); }
+let wishlistIds = new Set(getLocalWishlistIds());
+
+function getWishlist() { return [...wishlistIds]; }
+function setWishlist(ids) {
+  wishlistIds = new Set(ids);
+  if (!window.IS_LOGGED_IN) localStorage.setItem('wishlist', JSON.stringify([...wishlistIds]));
+  updateWishlistCount();
+}
+function isWishlisted(productId) { return wishlistIds.has(productId); }
 
 function toggleWishlist(productId) {
-  const w = getWishlist();
-  const idx = w.indexOf(productId);
-  if (idx > -1) { w.splice(idx, 1); showToast('Removed from wishlist'); }
-  else { w.push(productId); showToast('Added to wishlist!', 'success'); }
-  setWishlist(w);
-  return w.includes(productId);
+  const wasWished = wishlistIds.has(productId);
+  if (wasWished) { wishlistIds.delete(productId); showToast('Removed from wishlist'); }
+  else { wishlistIds.add(productId); showToast('Added to wishlist!', 'success'); }
+  updateWishlistCount();
+  persistWishlistChange(productId, !wasWished);
+  return !wasWished;
 }
-function isWishlisted(productId) { return getWishlist().includes(productId); }
+
+async function persistWishlistChange(productId, added) {
+  if (window.IS_LOGGED_IN) {
+    try {
+      await fetch('api/wishlist.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ action: added ? 'add' : 'remove', product_id: productId }),
+      });
+    } catch { /* best-effort; UI already updated optimistically */ }
+  } else {
+    localStorage.setItem('wishlist', JSON.stringify([...wishlistIds]));
+  }
+}
+
+// Runs once per page load (see initCommonPhp): if logged in, folds any
+// leftover guest wishlist into the account, then loads the real
+// database wishlist and re-syncs anything already rendered.
+async function loadWishlistFromServer() {
+  if (!window.IS_LOGGED_IN) return;
+  try {
+    const guestIds = getLocalWishlistIds();
+    if (guestIds.length > 0) {
+      await fetch('api/wishlist.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ action: 'sync', ids: guestIds.join(',') }),
+      });
+      localStorage.removeItem('wishlist');
+    }
+    const res = await fetch('api/wishlist.php?action=list');
+    const data = await res.json();
+    wishlistIds = new Set(data.ids || []);
+    updateWishlistCount();
+    syncWishlistUI();
+    if (typeof onWishlistLoaded === 'function') onWishlistLoaded();
+  } catch { /* stay on the localStorage-seeded state */ }
+}
 
 async function updateCartCount(countOverride) {
   let count = countOverride;
@@ -77,7 +130,7 @@ async function updateCartCount(countOverride) {
 }
 function updateWishlistCount() {
   document.querySelectorAll('.wishlist-badge').forEach(el => {
-    const count = getWishlist().length;
+    const count = wishlistIds.size;
     el.textContent = count;
     el.style.display = count > 0 ? 'flex' : 'none';
   });
@@ -421,6 +474,7 @@ function initCommonPhp() {
   updateCartCount();
   updateWishlistCount();
   syncWishlistUI();
+  loadWishlistFromServer();
   initScrollEffects();
   if (window.AOS) AOS.init({ duration: 700, once: true, offset: 60 });
 }
