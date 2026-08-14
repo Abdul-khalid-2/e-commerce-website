@@ -213,6 +213,40 @@ deferred rather than done as a rushed side effect of this pass.
 `wishlist.php`'s page shell (header/navbar/footer, product data source)
 is converted; the wishlist mechanism itself is unchanged.
 
+- **Admin panel — fully converted.** `admin/index.html` is gone;
+  everything is real PHP now, gated by a separate admin session
+  (`app/Core/Auth::requireAdmin()`, checked against `users.role =
+  'admin'` — the seeded account from `database/seed.php` works as-is):
+  - `admin/login.php` / `admin/logout.php` — separate from the
+    customer-facing login, own session key (`$_SESSION['admin_id']`)
+  - `admin/index.php` — dashboard with real numbers: total sales,
+    orders, customers, and products from the database; a 7-day sales
+    chart (Chart.js) and revenue-by-category breakdown computed from
+    real `order_items`; recent orders table
+  - `admin/products.php` + `api/admin/products.php` — full CRUD. New
+    products get a placeholder image and default color/size until
+    there's a real image-upload flow. **Editing an existing product
+    only touches its core fields** — it no longer wipes out that
+    product's real images/colors/sizes the way the original in-memory
+    JS version did (that was a real bug in the old version; fixed here)
+  - `admin/categories.php` + `api/admin/categories.php` — full CRUD,
+    same Active/Inactive toggle as before, now persisted — flip a
+    category off here and it disappears from the storefront nav/shop
+    immediately (verified end-to-end)
+  - `admin/orders.php` + `api/admin/orders.php` — lists real orders,
+    status dropdown updates persist to the database and show up
+    immediately on the customer's `orders.php` tracking page (also
+    verified end-to-end)
+  - `admin/customers.php` — real customer list with order count and
+    total spent per customer, computed via SQL
+  - `admin/settings.php` — edits the same `settings` table the
+    storefront reads from (store name, contact info, free shipping
+    threshold)
+
+  `assets/js/data.js` (the original static catalog file) is no longer
+  loaded anywhere on the site — every page now reads from the database.
+  It's still in the repo for reference but can be deleted whenever.
+
 **How the cart/wishlist bridge works right now:** cart and wishlist still
 live in `localStorage` (real server-side sessions are a later step).
 Converted pages still emit a `PRODUCTS` JS array — built from the

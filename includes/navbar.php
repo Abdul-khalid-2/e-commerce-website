@@ -76,7 +76,7 @@ function nav_active(string $key, string $activePage): string
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('about', $activePage) ?>" href="<?= $basePath ?>about.php">About</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('contact', $activePage) ?>" href="<?= $basePath ?>contact.php">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('orders', $activePage) ?>" href="<?= $basePath ?>orders.php">Track Order</a></li>
-        <li class="nav-item"><a class="nav-link-custom <?= nav_active('admin', $activePage) ?>" href="<?= $basePath ?>admin/index.html">Admin</a></li>
+        <li class="nav-item"><a class="nav-link-custom <?= nav_active('admin', $activePage) ?>" href="<?= $basePath ?>admin/index.php">Admin</a></li>
       </ul>
     </div>
   </nav>
@@ -102,7 +102,7 @@ function nav_active(string $key, string $activePage): string
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('contact', $activePage) ?>" href="<?= $basePath ?>contact.php">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('orders', $activePage) ?>" href="<?= $basePath ?>orders.php">Track Order</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('wishlist', $activePage) ?>" href="<?= $basePath ?>wishlist.php">Wishlist</a></li>
-        <li class="nav-item"><a class="nav-link-custom <?= nav_active('admin', $activePage) ?>" href="<?= $basePath ?>admin/index.html">Admin</a></li>
+        <li class="nav-item"><a class="nav-link-custom <?= nav_active('admin', $activePage) ?>" href="<?= $basePath ?>admin/index.php">Admin</a></li>
         <li class="nav-item mt-3 d-flex gap-2">
           <button class="theme-toggle" onclick="toggleTheme()"><i class="bi bi-moon-fill" id="themeIconMobile"></i></button>
 <?php if ($currentUserId): ?>
