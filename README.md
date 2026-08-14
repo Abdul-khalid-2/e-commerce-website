@@ -153,8 +153,17 @@ Re-running `seed.php` is a safe no-op if data already exists; pass
       they're logged in (`loadWishlistFromServer()` in
       `assets/js/common.js`), the same pattern already used for cart
       merging on login.
-- [ ] **CSRF protection** on the checkout and admin forms — currently
-      relies on the PHP session alone. Needed before any real deployment.
+- [x] **CSRF protection** on every state-changing form and AJAX
+      endpoint. `app/Core/Csrf.php` issues one token per session
+      (`window.CSRF_TOKEN`, emitted via `includes/header.php` and
+      `includes/admin-header.php`). Enforced on: customer login/signup,
+      admin login, admin settings, `api/cart.php` (add/update/remove/
+      clear), `api/place-order.php`, `api/wishlist.php` (add/remove/
+      sync), and all three `api/admin/*.php` endpoints. Regenerated on
+      every successful login (alongside `session_regenerate_id()`) so a
+      token issued before authenticating can't be replayed after.
+      Read-only actions (cart count/items, wishlist list) don't require
+      a token since they don't change anything.
 - [ ] **Real product image uploads** in the admin panel. New/edited
       products currently only support a single placeholder image or
       manual DB edits — no upload UI yet.

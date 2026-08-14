@@ -19,6 +19,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../config/bootstrap.php';
 
 use App\Core\Auth;
+use App\Core\Csrf;
 use App\Models\Product;
 
 header('Content-Type: application/json');
@@ -35,6 +36,9 @@ if (!Auth::isAdmin()) {
 }
 
 $action = $_POST['action'] ?? '';
+if (in_array($action, ['save', 'delete'], true)) {
+    Csrf::requireValidJson($_POST['csrf_token'] ?? null);
+}
 
 try {
     if ($action === 'save') {
@@ -43,7 +47,7 @@ try {
         $brand = trim((string) ($_POST['brand'] ?? ''));
         $categoryId = (int) ($_POST['category_id'] ?? 0) ?: null;
         $price = (float) ($_POST['price'] ?? 0);
-        $oldPrice = $_POST['old_price'] !== '' && isset($_POST['old_price']) ? (float) $_POST['old_price'] : null;
+        $oldPrice = isset($_POST['old_price']) && $_POST['old_price'] !== '' ? (float) $_POST['old_price'] : null;
         $stock = max(0, (int) ($_POST['stock'] ?? 0));
         $description = trim((string) ($_POST['description'] ?? ''));
 

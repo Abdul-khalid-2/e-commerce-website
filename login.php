@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/config/bootstrap.php';
 
+use App\Core\Csrf;
 use App\Models\Cart;
 use App\Models\User;
 
@@ -35,6 +36,7 @@ function log_user_in(array $user): void
 {
     $oldSessionId = session_id();
     session_regenerate_id(true);
+    Csrf::regenerate();
     $_SESSION['user_id'] = (int) $user['id'];
     $_SESSION['user_name'] = $user['name'];
     $_SESSION['user_email'] = $user['email'];
@@ -43,8 +45,12 @@ function log_user_in(array $user): void
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formAction = $_POST['form_action'] ?? '';
+    $csrfValid = Csrf::verify($_POST['csrf_token'] ?? null);
 
-    if ($formAction === 'login') {
+    if (!$csrfValid) {
+        $error = 'Your session expired. Please try again.';
+        $activeTab = $formAction === 'signup' ? 'signup' : 'login';
+    } elseif ($formAction === 'login') {
         $activeTab = 'login';
         $email = trim((string) ($_POST['email'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
@@ -110,6 +116,7 @@ require __DIR__ . '/includes/navbar.php';
                   <p class="text-muted-2">Login to continue shopping</p>
                 </div>
                 <form method="POST" action="login.php">
+                  <?= Csrf::field() ?>
                   <input type="hidden" name="form_action" value="login">
                   <input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? 'index.php', ENT_QUOTES, 'UTF-8') ?>">
                   <div class="mb-3"><label class="form-label">Email</label><div class="input-group"><span class="input-group-text bg-soft"><i class="bi bi-envelope"></i></span><input type="email" name="email" class="form-control" placeholder="you@example.com" required></div></div>
@@ -131,6 +138,7 @@ require __DIR__ . '/includes/navbar.php';
                   <p class="text-muted-2">Join ShopMate for the best deals</p>
                 </div>
                 <form method="POST" action="login.php">
+                  <?= Csrf::field() ?>
                   <input type="hidden" name="form_action" value="signup">
                   <input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? 'index.php', ENT_QUOTES, 'UTF-8') ?>">
                   <div class="mb-3"><label class="form-label">Full Name</label><div class="input-group"><span class="input-group-text bg-soft"><i class="bi bi-person"></i></span><input type="text" name="name" class="form-control" placeholder="Your full name" value="<?= htmlspecialchars($signupValues['name'], ENT_QUOTES, 'UTF-8') ?>" required></div></div>

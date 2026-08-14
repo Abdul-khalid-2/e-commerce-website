@@ -18,6 +18,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/bootstrap.php';
 
+use App\Core\Csrf;
 use App\Models\Cart;
 use App\Models\Product;
 
@@ -33,6 +34,12 @@ function respond(array $data, int $status = 200): never
 $userId = $_SESSION['user_id'] ?? null;
 $sessionId = session_id();
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
+
+// count/items are read-only (GET); everything else changes state and
+// requires a valid CSRF token.
+if (in_array($action, ['add', 'update', 'remove', 'clear'], true)) {
+    Csrf::requireValidJson($_POST['csrf_token'] ?? null);
+}
 
 try {
     if ($action === 'count') {

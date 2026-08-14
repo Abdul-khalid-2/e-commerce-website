@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/bootstrap.php';
 
+use App\Core\Csrf;
 use App\Models\Cart;
 use App\Models\Order;
 
@@ -34,6 +35,8 @@ function respond(array $data, int $status = 200): never
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(['success' => false, 'message' => 'Method not allowed'], 405);
 }
+
+Csrf::requireValidJson($_POST['csrf_token'] ?? null);
 
 $name = trim((string) ($_POST['customer_name'] ?? ''));
 $phone = trim((string) ($_POST['customer_phone'] ?? ''));

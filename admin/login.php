@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/bootstrap.php';
 
+use App\Core\Csrf;
 use App\Models\User;
 
 if (!empty($_SESSION['admin_id'])) {
@@ -26,7 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim((string) ($_POST['email'] ?? ''));
     $password = (string) ($_POST['password'] ?? '');
 
-    if ($email === '' || $password === '') {
+    if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
+        $error = 'Your session expired. Please try again.';
+    } elseif ($email === '' || $password === '') {
         $error = 'Please enter your email and password';
     } else {
         $user = User::findByEmail($email);
@@ -34,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Incorrect email or password';
         } else {
             session_regenerate_id(true);
+            Csrf::regenerate();
             $_SESSION['admin_id'] = (int) $user['id'];
             $_SESSION['admin_name'] = $user['name'];
             header('Location: ' . safe_admin_redirect());
@@ -67,6 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <div class="alert alert-danger py-2 fs-7"><i class="bi bi-exclamation-circle me-1"></i> <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
 <?php endif; ?>
               <form method="POST" action="login.php">
+                <?= Csrf::field() ?>
                 <input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? 'index.php', ENT_QUOTES, 'UTF-8') ?>">
                 <div class="mb-3"><label class="form-label">Email</label><div class="input-group"><span class="input-group-text bg-soft"><i class="bi bi-envelope"></i></span><input type="email" name="email" class="form-control" placeholder="admin@shopmate.pk" required autofocus></div></div>
                 <div class="mb-3"><label class="form-label">Password</label><div class="input-group"><span class="input-group-text bg-soft"><i class="bi bi-lock"></i></span><input type="password" name="password" class="form-control" placeholder="Enter password" required></div></div>

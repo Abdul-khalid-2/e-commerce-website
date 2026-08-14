@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/bootstrap.php';
 
+use App\Core\Csrf;
 use App\Models\Wishlist;
 
 header('Content-Type: application/json');
@@ -37,6 +38,10 @@ if (!$userId) {
 $userId = (int) $userId;
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
+
+if (in_array($action, ['add', 'remove', 'sync'], true)) {
+    Csrf::requireValidJson($_POST['csrf_token'] ?? null);
+}
 
 try {
     if ($action === 'list') {

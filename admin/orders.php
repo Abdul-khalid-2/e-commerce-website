@@ -73,7 +73,7 @@ require __DIR__ . '/../includes/admin-header.php';
         const status = select.value;
         const res = await fetch('../api/admin/orders.php', {
           method: 'POST',
-          body: new URLSearchParams({ action: 'update-status', order_number: orderNumber, status }),
+          body: new URLSearchParams({ action: 'update-status', order_number: orderNumber, status, csrf_token: window.CSRF_TOKEN || '' }),
         });
         const data = await res.json();
         if (data.success) {

@@ -94,6 +94,7 @@ require __DIR__ . '/../includes/admin-header.php';
           icon: document.getElementById('cIcon').value.trim() || 'bi-grid',
           image: document.getElementById('cImage').value.trim(),
           active: document.getElementById('cActive').value === 'true' ? '1' : '0',
+          csrf_token: window.CSRF_TOKEN || '',
         });
         const res = await fetch('../api/admin/categories.php', { method: 'POST', body });
         const data = await res.json();

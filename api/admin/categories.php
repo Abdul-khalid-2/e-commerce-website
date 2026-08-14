@@ -11,6 +11,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../config/bootstrap.php';
 
 use App\Core\Auth;
+use App\Core\Csrf;
 use App\Core\Str;
 use App\Models\Category;
 
@@ -28,6 +29,9 @@ if (!Auth::isAdmin()) {
 }
 
 $action = $_POST['action'] ?? '';
+if ($action === 'save') {
+    Csrf::requireValidJson($_POST['csrf_token'] ?? null);
+}
 
 try {
     if ($action === 'save') {

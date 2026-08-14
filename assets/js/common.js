@@ -7,7 +7,7 @@ const formatPKR = (n) => 'Rs. ' + Math.round(n).toLocaleString('en-PK');
 // and survives across devices once logged in. These functions talk to
 // that endpoint instead of localStorage.
 async function cartRequest(action, params = {}) {
-  const body = new URLSearchParams({ action, ...params });
+  const body = new URLSearchParams({ action, csrf_token: window.CSRF_TOKEN || '', ...params });
   const res = await fetch('api/cart.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -81,7 +81,7 @@ async function persistWishlistChange(productId, added) {
       await fetch('api/wishlist.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ action: added ? 'add' : 'remove', product_id: productId }),
+        body: new URLSearchParams({ action: added ? 'add' : 'remove', product_id: productId, csrf_token: window.CSRF_TOKEN || '' }),
       });
     } catch { /* best-effort; UI already updated optimistically */ }
   } else {
@@ -100,7 +100,7 @@ async function loadWishlistFromServer() {
       await fetch('api/wishlist.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ action: 'sync', ids: guestIds.join(',') }),
+        body: new URLSearchParams({ action: 'sync', ids: guestIds.join(','), csrf_token: window.CSRF_TOKEN || '' }),
       });
       localStorage.removeItem('wishlist');
     }

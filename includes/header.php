@@ -15,6 +15,8 @@
 
 declare(strict_types=1);
 
+use App\Core\Csrf;
+
 $pageTitle ??= 'ShopMate Pakistan - Online Shopping Store';
 $basePath ??= '';
 ?><!doctype html>
@@ -33,3 +35,5 @@ $basePath ??= '';
     <link rel="stylesheet" href="<?= $basePath ?>assets/css/style.css">
   </head>
   <body>
+    <script>window.CSRF_TOKEN = <?= json_encode(Csrf::token()) ?>;</script>
+

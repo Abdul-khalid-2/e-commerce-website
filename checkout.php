@@ -273,6 +273,7 @@ require __DIR__ . '/includes/navbar.php';
           city: document.getElementById('city').value,
           postal_code: document.getElementById('postal').value,
           payment_method: selectedPayment,
+          csrf_token: window.CSRF_TOKEN || '',
         });
 
         try {

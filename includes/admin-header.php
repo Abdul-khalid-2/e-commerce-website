@@ -12,6 +12,8 @@
 
 declare(strict_types=1);
 
+use App\Core\Csrf;
+
 $pageTitle ??= 'Admin - ShopMate Pakistan';
 $activeSection ??= 'dashboard';
 
@@ -41,6 +43,7 @@ $adminName = $_SESSION['admin_name'] ?? 'Admin';
     </style>
   </head>
   <body>
+    <script>window.CSRF_TOKEN = <?= json_encode(Csrf::token()) ?>;</script>
     <div class="admin-overlay" id="adminOverlay" onclick="toggleSidebar()"></div>
 
     <aside class="admin-sidebar" id="adminSidebar">

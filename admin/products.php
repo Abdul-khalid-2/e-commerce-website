@@ -107,6 +107,7 @@ require __DIR__ . '/../includes/admin-header.php';
           old_price: document.getElementById('pOldPrice').value,
           stock: document.getElementById('pStock').value,
           description: document.getElementById('pDescription').value.trim(),
+          csrf_token: window.CSRF_TOKEN || '',
         });
         const res = await fetch('../api/admin/products.php', { method: 'POST', body });
         const data = await res.json();
@@ -121,7 +122,7 @@ require __DIR__ . '/../includes/admin-header.php';
 
       async function deleteProduct(id, name) {
         if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
-        const res = await fetch('../api/admin/products.php', { method: 'POST', body: new URLSearchParams({ action: 'delete', id }) });
+        const res = await fetch('../api/admin/products.php', { method: 'POST', body: new URLSearchParams({ action: 'delete', id, csrf_token: window.CSRF_TOKEN || '' }) });
         const data = await res.json();
         if (data.success) {
           showToast('Product deleted', 'success');
