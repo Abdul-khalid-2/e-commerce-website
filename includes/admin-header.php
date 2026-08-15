@@ -13,6 +13,7 @@
 declare(strict_types=1);
 
 use App\Core\Csrf;
+use App\Models\ContactMessage;
 
 $pageTitle ??= 'Admin - ShopMate Pakistan';
 $activeSection ??= 'dashboard';
@@ -23,10 +24,12 @@ $sectionTitles = [
     'orders' => 'Orders',
     'customers' => 'Customers',
     'categories' => 'Categories',
+    'messages' => 'Contact Messages',
     'settings' => 'Settings',
 ];
 $sectionTitle = $sectionTitles[$activeSection] ?? 'Admin';
 $adminName = $_SESSION['admin_name'] ?? 'Admin';
+$unreadMessageCount = ContactMessage::countByStatus('New');
 ?><!doctype html>
 <html lang="en">
   <head>
@@ -57,6 +60,7 @@ $adminName = $_SESSION['admin_name'] ?? 'Admin';
         <li><a class="nav-link <?= $activeSection === 'orders' ? 'active' : '' ?>" href="orders.php"><i class="bi bi-receipt"></i> Orders</a></li>
         <li><a class="nav-link <?= $activeSection === 'customers' ? 'active' : '' ?>" href="customers.php"><i class="bi bi-people"></i> Customers</a></li>
         <li><a class="nav-link <?= $activeSection === 'categories' ? 'active' : '' ?>" href="categories.php"><i class="bi bi-grid"></i> Categories</a></li>
+        <li><a class="nav-link <?= $activeSection === 'messages' ? 'active' : '' ?> d-flex align-items-center justify-content-between" href="messages.php"><span><i class="bi bi-envelope"></i> Messages</span><?php if ($unreadMessageCount > 0): ?><span class="badge bg-danger rounded-pill"><?= $unreadMessageCount ?></span><?php endif; ?></a></li>
         <li><a class="nav-link <?= $activeSection === 'settings' ? 'active' : '' ?>" href="settings.php"><i class="bi bi-gear"></i> Settings</a></li>
         <li class="mt-3"><a class="nav-link" href="../index.php"><i class="bi bi-box-arrow-left"></i> Back to Store</a></li>
         <li><a class="nav-link" href="logout.php"><i class="bi bi-power"></i> Logout</a></li>

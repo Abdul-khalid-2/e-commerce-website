@@ -107,12 +107,42 @@ require __DIR__ . '/includes/navbar.php';
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="assets/js/common.js"></script>
     <script>
-      // No backend endpoint for contact messages yet (see README roadmap) -
-      // this just confirms receipt to the visitor and resets the form.
-      function submitContactForm(e) {
+      async function submitContactForm(e) {
         e.preventDefault();
-        showToast("Thanks! We'll get back to you soon.", 'success');
-        document.getElementById('contactForm').reset();
+        const form = document.getElementById('contactForm');
+        const btn = form.querySelector('button[type="submit"]');
+        const originalLabel = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending...';
+
+        try {
+          const fd = new FormData(form);
+          const res = await fetch('api/contact.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              action: 'submit',
+              name: fd.get('name') || '',
+              email: fd.get('email') || '',
+              subject: fd.get('subject') || '',
+              message: fd.get('message') || '',
+              csrf_token: window.CSRF_TOKEN || '',
+            }),
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            showToast("Thanks! We'll get back to you soon.", 'success');
+            form.reset();
+          } else {
+            showToast(data.message || 'Could not send your message');
+          }
+        } catch {
+          showToast('Network error - please try again');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalLabel;
+        }
         return false;
       }
 

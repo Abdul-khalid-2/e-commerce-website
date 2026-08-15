@@ -185,9 +185,14 @@ Re-running `seed.php` is a safe no-op if data already exists; pass
       inline star-rating write-a-review form for logged-in users who
       haven't already reviewed that product, and a login prompt for
       guests.
-- [ ] **Contact form persistence.** `contact.php`'s form only shows a
-      client-side success toast — no `contact_messages` table or email/
-      DB save yet.
+- [x] **Contact form persistence.** Submissions are saved for real now
+      (`contact_messages` table, `app/Models/ContactMessage.php`,
+      `api/contact.php`, CSRF-protected). New in this pass:
+      `admin/messages.php` + `api/admin/messages.php` — an inbox view
+      with status filters (New/Read/Replied), a "Reply by Email"
+      `mailto:` shortcut, and a delete option. The admin sidebar shows
+      an unread-count badge next to "Messages", computed live from the
+      database on every page load.
 - [ ] **Order confirmation email/SMS.** Orders are created successfully
       but nothing is sent to the customer beyond the on-page success
       screen.
