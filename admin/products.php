@@ -38,6 +38,7 @@ require __DIR__ . '/../includes/admin-header.php';
                 <td><span class="status-badge status-<?= (int) $p['stock'] > 0 ? 'Delivered' : 'Cancelled' ?>"><?= (int) $p['stock'] > 0 ? 'Active' : 'Out of Stock' ?></span></td>
                 <td class="text-end">
                   <button class="btn btn-sm btn-light" onclick='openProductModal(<?= (int) $p["id"] ?>)'><i class="bi bi-pencil"></i></button>
+                  <button class="btn btn-sm btn-light" onclick='openImageManager(<?= (int) $p["id"] ?>, <?= json_encode($p["name"]) ?>)' title="Manage Images"><i class="bi bi-images"></i></button>
                   <button class="btn btn-sm btn-light text-danger" onclick="deleteProduct(<?= (int) $p['id'] ?>, '<?= htmlspecialchars(addslashes($p['name']), ENT_QUOTES, 'UTF-8') ?>')"><i class="bi bi-trash3"></i></button>
                 </td>
               </tr>
@@ -129,6 +130,86 @@ require __DIR__ . '/../includes/admin-header.php';
           setTimeout(() => window.location.reload(), 400);
         } else {
           showToast(data.message || 'Could not delete product');
+        }
+      }
+
+      let imageManagerProductId = null;
+
+      function renderImageGrid(images) {
+        const grid = document.getElementById('imageManagerGrid');
+        if (!images.length) {
+          grid.innerHTML = '<p class="text-muted-2 fs-7 mb-0">No images yet — upload one below.</p>';
+          return;
+        }
+        grid.innerHTML = images.map(img => `
+          <div class="position-relative" style="width:90px;">
+            <img src="${img.image_url.startsWith('/') ? '..' + img.image_url : img.image_url}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">
+            <button class="btn btn-sm btn-danger position-absolute" style="top:-8px;right:-8px;padding:2px 6px;border-radius:50%;" onclick="deleteProductImage(${img.id})" title="Remove"><i class="bi bi-x"></i></button>
+          </div>`).join('');
+      }
+
+      async function openImageManager(productId, productName) {
+        imageManagerProductId = productId;
+        const modalHtml = `
+          <div class="modal fade" id="imageManagerModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+              <div class="modal-content bg-surface" style="border:1px solid var(--border);border-radius:var(--radius);">
+                <div class="modal-header border-soft"><h5 class="modal-title fw-700">Images — ${productName.replace(/</g,'&lt;')}</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                  <div class="d-flex flex-wrap gap-2 mb-3" id="imageManagerGrid"></div>
+                  <hr class="border-soft">
+                  <label class="form-label">Upload images (JPG, PNG, WEBP or GIF, up to 5MB each)</label>
+                  <input type="file" class="form-control" id="imageUploadInput" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+                  <button class="btn-brand mt-3" onclick="uploadProductImages()"><i class="bi bi-upload me-1"></i> Upload</button>
+                </div>
+                <div class="modal-footer border-soft">
+                  <button class="btn-outline-brand" data-bs-dismiss="modal">Done</button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+        document.getElementById('imageManagerModal')?.remove();
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        new bootstrap.Modal(document.getElementById('imageManagerModal')).show();
+
+        const res = await fetch(`../api/admin/product-images.php?action=list&product_id=${productId}`);
+        const data = await res.json();
+        renderImageGrid(data.images || []);
+      }
+
+      async function uploadProductImages() {
+        const input = document.getElementById('imageUploadInput');
+        if (!input.files.length) { showToast('Choose at least one image'); return; }
+
+        const body = new FormData();
+        body.append('action', 'upload');
+        body.append('product_id', imageManagerProductId);
+        body.append('csrf_token', window.CSRF_TOKEN || '');
+        [...input.files].forEach(f => body.append('images[]', f));
+
+        const res = await fetch('../api/admin/product-images.php', { method: 'POST', body });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`${data.uploaded} image(s) uploaded`, 'success');
+          renderImageGrid(data.images || []);
+          input.value = '';
+        } else {
+          showToast(data.message || 'Upload failed');
+        }
+      }
+
+      async function deleteProductImage(imageId) {
+        if (!confirm('Remove this image?')) return;
+        const res = await fetch('../api/admin/product-images.php', {
+          method: 'POST',
+          body: new URLSearchParams({ action: 'delete', image_id: imageId, product_id: imageManagerProductId, csrf_token: window.CSRF_TOKEN || '' }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Image removed', 'success');
+          renderImageGrid(data.images || []);
+        } else {
+          showToast(data.message || 'Could not remove image');
         }
       }
     </script>

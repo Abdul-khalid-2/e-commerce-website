@@ -164,9 +164,16 @@ Re-running `seed.php` is a safe no-op if data already exists; pass
       token issued before authenticating can't be replayed after.
       Read-only actions (cart count/items, wishlist list) don't require
       a token since they don't change anything.
-- [ ] **Real product image uploads** in the admin panel. New/edited
-      products currently only support a single placeholder image or
-      manual DB edits — no upload UI yet.
+- [x] **Real product image uploads** in the admin panel
+      (`api/admin/product-images.php`). Files are validated by their
+      actual content (`finfo` reads the real magic bytes, not the
+      filename extension or claimed Content-Type — both spoofable),
+      renamed to a random filename before being written to
+      `assets/img/products/`, and capped at 5MB / 10 images per
+      product. A new product's auto-generated placeholder image is
+      automatically replaced the moment a real image is uploaded. Open
+      the "Images" button on any product row in `admin/products.php`
+      to manage a product's gallery.
 - [ ] **Product reviews table.** `product.php`'s Reviews tab still shows
       3 static sample reviews; no `product_reviews` table or submission
       form exists yet.

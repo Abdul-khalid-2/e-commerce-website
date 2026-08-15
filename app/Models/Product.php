@@ -116,6 +116,75 @@ final class Product extends Model
     }
 
     /**
+     * @return array<int, array<string, mixed>> [{id, image_url, sort_order}, ...]
+     */
+    public static function getImages(int $productId): array
+    {
+        $stmt = static::db()->prepare(
+            'SELECT id, image_url, sort_order FROM product_images
+             WHERE product_id = :id ORDER BY sort_order ASC, id ASC'
+        );
+        $stmt->execute(['id' => $productId]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Appends one image at the end of the product's gallery. If this is
+     * the product's only image and it's the generic placeholder used
+     * when a product is first created, the placeholder is removed so
+     * the first real upload replaces it instead of sitting alongside it.
+     */
+    public static function addImage(int $productId, string $imageUrl): int
+    {
+        $db = static::db();
+
+        $existing = self::getImages($productId);
+        if (count($existing) === 1 && self::isPlaceholderImage($existing[0]['image_url'])) {
+            self::removeImage((int) $existing[0]['id']);
+            $existing = [];
+        }
+
+        $nextSort = 0;
+        foreach ($existing as $img) {
+            $nextSort = max($nextSort, (int) $img['sort_order'] + 1);
+        }
+
+        $stmt = $db->prepare(
+            'INSERT INTO product_images (product_id, image_url, sort_order) VALUES (:pid, :url, :sort)'
+        );
+        $stmt->execute(['pid' => $productId, 'url' => $imageUrl, 'sort' => $nextSort]);
+
+        return (int) $db->lastInsertId();
+    }
+
+    /**
+     * Deletes the DB row and returns the image_url that was removed
+     * (so the caller can delete the on-disk file for locally-uploaded
+     * images — never for external/seeded URLs).
+     */
+    public static function removeImage(int $imageId): ?string
+    {
+        $db = static::db();
+
+        $stmt = $db->prepare('SELECT image_url FROM product_images WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $imageId]);
+        $url = $stmt->fetchColumn();
+        if ($url === false) {
+            return null;
+        }
+
+        $stmt = $db->prepare('DELETE FROM product_images WHERE id = :id');
+        $stmt->execute(['id' => $imageId]);
+
+        return (string) $url;
+    }
+
+    public static function isPlaceholderImage(string $imageUrl): bool
+    {
+        return str_contains($imageUrl, 'pexels-photo-230544');
+    }
+
+    /**
      * Attach images/colors/sizes/specs to an already-fetched product row.
      */
     public static function withRelations(array $product): array
