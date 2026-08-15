@@ -174,9 +174,17 @@ Re-running `seed.php` is a safe no-op if data already exists; pass
       automatically replaced the moment a real image is uploaded. Open
       the "Images" button on any product row in `admin/products.php`
       to manage a product's gallery.
-- [ ] **Product reviews table.** `product.php`'s Reviews tab still shows
-      3 static sample reviews; no `product_reviews` table or submission
-      form exists yet.
+- [x] **Product reviews table.** Real reviews (`product_reviews`,
+      `app/Models/Review.php`, `api/reviews.php`), one per logged-in
+      user per product. `products.rating`/`reviews_count` are kept as a
+      small denormalized cache — recalculated from real reviews the
+      moment a new one is submitted, but left at their seeded baseline
+      for products nobody's reviewed yet (rather than zeroing every
+      product's rating out). The 3 previously-hardcoded sample reviews
+      are gone; `product.php`'s Reviews tab now shows real reviews, an
+      inline star-rating write-a-review form for logged-in users who
+      haven't already reviewed that product, and a login prompt for
+      guests.
 - [ ] **Contact form persistence.** `contact.php`'s form only shows a
       client-side success toast — no `contact_messages` table or email/
       DB save yet.

@@ -5,8 +5,10 @@ declare(strict_types=1);
 require_once __DIR__ . '/config/bootstrap.php';
 require_once __DIR__ . '/includes/product-card.php';
 
+use App\Core\Csrf;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Review;
 
 $activePage = 'shop';
 $basePath = '';
@@ -28,6 +30,10 @@ if (!$product) {
 
 $category = $product['category_id'] ? Category::find((int) $product['category_id']) : null;
 $categoryName = $category['name'] ?? '';
+
+$currentUserId = $_SESSION['user_id'] ?? null;
+$reviews = Review::forProduct((int) $product['id']);
+$userHasReviewed = $currentUserId ? Review::userHasReviewed((int) $product['id'], (int) $currentUserId) : false;
 
 $pageTitle = $product['name'] . ' - ShopMate Pakistan';
 
@@ -197,39 +203,69 @@ require __DIR__ . '/includes/navbar.php';
                 </table>
               </div>
               <div class="tab-pane fade" id="reviews">
-                <div class="d-flex align-items-center gap-4 mb-4 flex-wrap">
+                <div class="d-flex align-items-center gap-4 mb-4 flex-wrap" id="reviewSummary">
                   <div class="text-center">
-                    <div class="display-5 fw-700 text-brand"><?= $product['rating'] ?></div>
-                    <?= render_stars((float) $product['rating']) ?>
-                    <p class="text-muted-2 fs-7 mt-1"><?= (int) $product['reviews_count'] ?> reviews</p>
+                    <div class="display-5 fw-700 text-brand" id="avgRatingText"><?= $product['rating'] ?></div>
+                    <span id="avgRatingStars"><?= render_stars((float) $product['rating']) ?></span>
+                    <p class="text-muted-2 fs-7 mt-1" id="reviewCountText"><?= (int) $product['reviews_count'] ?> reviews</p>
                   </div>
                   <div class="flex-grow-1" style="min-width:200px;">
 <?php
-                    $roundedRating = (int) round((float) $product['rating']);
+                    $ratingCounts = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+                    foreach ($reviews as $r) {
+                        $ratingCounts[(int) $r['rating']] = ($ratingCounts[(int) $r['rating']] ?? 0) + 1;
+                    }
+                    $totalReal = count($reviews);
                     foreach ([5, 4, 3, 2, 1] as $s):
-                        $pct = $s === $roundedRating ? 60 : ($s === $roundedRating - 1 ? 25 : 5);
+                        if ($totalReal > 0) {
+                            $pct = (int) round(($ratingCounts[$s] / $totalReal) * 100);
+                        } else {
+                            // No real reviews yet — rough placeholder distribution
+                            // centered on the product's baseline rating.
+                            $roundedRating = (int) round((float) $product['rating']);
+                            $pct = $s === $roundedRating ? 60 : ($s === $roundedRating - 1 ? 25 : 5);
+                        }
 ?>
                     <div class="d-flex align-items-center gap-2 mb-1"><span class="fs-8"><?= $s ?> <i class="bi bi-star-fill text-warning fs-8"></i></span><div style="flex:1;height:8px;background:var(--bg);border-radius:4px;"><div style="width:<?= $pct ?>%;height:100%;background:var(--brand);border-radius:4px;"></div></div><span class="fs-8 text-muted-2"><?= $pct ?>%</span></div>
 <?php endforeach; ?>
                   </div>
                 </div>
                 <hr class="border-soft">
-<?php
-                $sampleReviews = [
-                    ['name' => 'Sana Khan', 'date' => '2 days ago', 'rating' => 5, 'text' => 'Excellent product! Exactly as described. Delivery was quick.'],
-                    ['name' => 'Ali Raza', 'date' => '1 week ago', 'rating' => 4, 'text' => 'Good quality and value for money. Recommended.'],
-                    ['name' => 'Hira Aslam', 'date' => '2 weeks ago', 'rating' => 5, 'text' => 'Very happy with my purchase. Will buy again from ShopMate.'],
-                ];
-                foreach ($sampleReviews as $r):
-?>
-                <div class="review-card">
-                  <div class="d-flex justify-content-between mb-2">
-                    <div><strong><?= htmlspecialchars($r['name'], ENT_QUOTES, 'UTF-8') ?></strong><br><small class="text-muted-2"><?= htmlspecialchars($r['date'], ENT_QUOTES, 'UTF-8') ?></small></div>
-                    <?= render_stars((float) $r['rating']) ?>
+
+                <div id="writeReviewArea" class="mb-4">
+<?php if (!$currentUserId): ?>
+                  <div class="bg-soft p-3 rounded border-soft fs-7">
+                    <a href="login.php?redirect=<?= urlencode('product.php?id=' . (int) $product['id']) ?>" class="text-brand">Log in</a> to write a review.
                   </div>
-                  <p class="text-muted-2 mb-0"><?= htmlspecialchars($r['text'], ENT_QUOTES, 'UTF-8') ?></p>
+<?php elseif ($userHasReviewed): ?>
+                  <div class="bg-soft p-3 rounded border-soft fs-7 text-muted-2"><i class="bi bi-check-circle text-success me-1"></i> You've already reviewed this product.</div>
+<?php else: ?>
+                  <div class="bg-soft p-3 rounded border-soft">
+                    <h6 class="fw-700 mb-2">Write a Review</h6>
+                    <div class="mb-2" id="starPicker">
+<?php for ($i = 1; $i <= 5; $i++): ?>
+                      <i class="bi bi-star fs-4 star-pick" data-value="<?= $i ?>" style="cursor:pointer;color:#D1D5DB;" onclick="pickStar(<?= $i ?>)"></i>
+<?php endfor; ?>
+                    </div>
+                    <textarea class="form-control mb-2" id="reviewComment" rows="3" placeholder="Share your experience with this product..." maxlength="1000"></textarea>
+                    <button class="btn-brand" onclick="submitReview()"><i class="bi bi-send me-1"></i> Submit Review</button>
+                  </div>
+<?php endif; ?>
                 </div>
-<?php endforeach; ?>
+
+                <div id="reviewsList">
+<?php if (empty($reviews)): ?>
+                  <p class="text-muted-2 fs-7 mb-0">No reviews yet — be the first to review this product!</p>
+<?php else: foreach ($reviews as $r): ?>
+                  <div class="review-card">
+                    <div class="d-flex justify-content-between mb-2">
+                      <div><strong><?= htmlspecialchars($r['reviewer_name'], ENT_QUOTES, 'UTF-8') ?></strong><br><small class="text-muted-2"><?= date('d M Y', strtotime($r['created_at'])) ?></small></div>
+                      <?= render_stars((float) $r['rating']) ?>
+                    </div>
+                    <p class="text-muted-2 mb-0"><?= htmlspecialchars($r['comment'], ENT_QUOTES, 'UTF-8') ?></p>
+                  </div>
+<?php endforeach; endif; ?>
+                </div>
               </div>
             </div>
           </div>
@@ -307,6 +343,73 @@ require __DIR__ . '/includes/navbar.php';
         const wished = isWishlisted(product.id);
         document.getElementById('wishIcon').className = 'bi bi-heart' + (wished ? '-fill' : '');
         document.getElementById('wishText').textContent = (wished ? 'Remove from' : 'Add to') + ' Wishlist';
+      }
+
+      let selectedStar = 0;
+      function pickStar(n) {
+        selectedStar = n;
+        document.querySelectorAll('.star-pick').forEach((el, i) => {
+          const filled = i < n;
+          el.className = 'bi ' + (filled ? 'bi-star-fill' : 'bi-star') + ' fs-4 star-pick';
+          el.style.color = filled ? '#F59E0B' : '#D1D5DB';
+        });
+      }
+
+      function renderStarsHtml(rating) {
+        let html = '<span class="rating-stars">';
+        for (let i = 1; i <= 5; i++) {
+          if (rating >= i) html += '<i class="bi bi-star-fill"></i>';
+          else if (rating >= i - 0.5) html += '<i class="bi bi-star-half"></i>';
+          else html += '<i class="bi bi-star"></i>';
+        }
+        return html + '</span>';
+      }
+
+      async function submitReview() {
+        const comment = document.getElementById('reviewComment').value.trim();
+        if (!selectedStar) { showToast('Please select a star rating'); return; }
+        if (comment.length < 5) { showToast('Please write a short review (at least 5 characters)'); return; }
+
+        const res = await fetch('api/reviews.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            action: 'create',
+            product_id: product.id,
+            rating: selectedStar,
+            comment,
+            csrf_token: window.CSRF_TOKEN || '',
+          }),
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+          showToast(data.message || 'Could not submit review');
+          return;
+        }
+
+        showToast('Thanks for your review!', 'success');
+        document.getElementById('avgRatingText').textContent = data.rating;
+        document.getElementById('avgRatingStars').innerHTML = renderStarsHtml(data.rating);
+        document.getElementById('reviewCountText').textContent = data.reviews_count + ' reviews';
+        document.getElementById('writeReviewArea').innerHTML = '<div class="bg-soft p-3 rounded border-soft fs-7 text-muted-2"><i class="bi bi-check-circle text-success me-1"></i> You\'ve already reviewed this product.</div>';
+
+        const list = document.getElementById('reviewsList');
+        list.innerHTML = '';
+        data.reviews.forEach(r => {
+          const card = document.createElement('div');
+          card.className = 'review-card';
+          card.innerHTML = `
+            <div class="d-flex justify-content-between mb-2">
+              <div><strong></strong><br><small class="text-muted-2"></small></div>
+              ${renderStarsHtml(r.rating)}
+            </div>
+            <p class="text-muted-2 mb-0"></p>`;
+          card.querySelector('strong').textContent = r.reviewer_name;
+          card.querySelector('small').textContent = new Date(r.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+          card.querySelector('p').textContent = r.comment;
+          list.appendChild(card);
+        });
       }
 
       initCommonPhp();

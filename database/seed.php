@@ -19,6 +19,7 @@ use App\Core\Database;
 use App\Core\Str;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Review;
 use App\Models\Setting;
 use App\Models\User;
 
@@ -34,7 +35,7 @@ if ($fresh) {
     echo 'Clearing existing data (--fresh)...' . PHP_EOL;
     $db->exec('SET FOREIGN_KEY_CHECKS = 0');
     foreach ([
-        'product_specs', 'product_sizes', 'product_colors', 'product_images',
+        'product_reviews', 'product_specs', 'product_sizes', 'product_colors', 'product_images',
         'wishlists', 'cart_items', 'carts', 'order_items', 'orders', 'addresses',
         'products', 'categories', 'hero_slides', 'testimonials', 'trust_badges',
         'settings', 'users',
@@ -87,6 +88,8 @@ echo 'Seeding products...' . PHP_EOL;
 $productsData = require __DIR__ . '/seeds/products.php';
 
 $createdSlugs = [];
+$createdSlugs = [];
+$productIdsByName = [];
 foreach ($productsData as $p) {
     $slug = Str::slug($p['name']);
     // Guard against duplicate slugs if two products share a name.
@@ -98,7 +101,7 @@ foreach ($productsData as $p) {
     }
     $createdSlugs[] = $unique;
 
-    Product::createFull(
+    $newProductId = Product::createFull(
         [
             'category_id' => $categoryIds[$p['category']] ?? null,
             'name' => $p['name'],
@@ -118,6 +121,7 @@ foreach ($productsData as $p) {
         $p['sizes'],
         $p['specs']
     );
+    $productIdsByName[$p['name']] = $newProductId;
 }
 echo '  ' . count($productsData) . ' products created.' . PHP_EOL;
 
@@ -202,6 +206,35 @@ if (!User::findByEmail($adminEmail)) {
     echo '  Change this password once the login page is built.' . PHP_EOL;
 } else {
     echo '  Admin user already exists, skipped.' . PHP_EOL;
+}
+
+// ---------------------------------------------------------------------
+// Sample reviews — real product_reviews rows tied to real customer
+// accounts, seeded on the flagship demo product so the Reviews tab has
+// something to show out of the box. Every other product's rating/
+// reviews_count stays as its static baseline until real customers
+// review it (see Review::recalculateProductRating).
+// ---------------------------------------------------------------------
+echo 'Seeding sample reviews...' . PHP_EOL;
+
+$flagshipProductId = $productIdsByName['Samsung Galaxy A55 5G'] ?? null;
+if ($flagshipProductId) {
+    $sampleReviewers = [
+        ['name' => 'Sana Khan', 'email' => 'sana.khan@example.com', 'rating' => 5, 'comment' => 'Excellent product! Exactly as described. Delivery was quick.'],
+        ['name' => 'Ali Raza', 'email' => 'ali.raza@example.com', 'rating' => 4, 'comment' => 'Good quality and value for money. Recommended.'],
+        ['name' => 'Hira Aslam', 'email' => 'hira.aslam@example.com', 'rating' => 5, 'comment' => 'Very happy with my purchase. Will buy again from ShopMate.'],
+    ];
+    foreach ($sampleReviewers as $reviewer) {
+        $user = User::findByEmail($reviewer['email']);
+        if (!$user) {
+            User::register($reviewer['name'], $reviewer['email'], 'Sample@12345', 'customer');
+            $user = User::findByEmail($reviewer['email']);
+        }
+        if (!Review::userHasReviewed($flagshipProductId, (int) $user['id'])) {
+            Review::create($flagshipProductId, (int) $user['id'], $reviewer['rating'], $reviewer['comment']);
+        }
+    }
+    echo '  3 sample reviews created on the flagship product.' . PHP_EOL;
 }
 
 echo PHP_EOL . 'Seeding complete.' . PHP_EOL;
