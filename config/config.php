@@ -74,6 +74,21 @@ define('DB_PASS', env('DB_PASS', ''));
 define('DB_CHARSET', 'utf8mb4');
 
 // ---------------------------------------------------------------------
+// Mail (SMTP) constants
+// ---------------------------------------------------------------------
+// These default to placeholder values — see .env.example and the
+// README "Email setup" section. Order confirmation emails will fail
+// silently (logged, never blocking checkout) until real credentials
+// are supplied.
+define('MAIL_HOST', env('MAIL_HOST', 'smtp.gmail.com'));
+define('MAIL_PORT', (int) env('MAIL_PORT', 587));
+define('MAIL_ENCRYPTION', env('MAIL_ENCRYPTION', 'tls'));
+define('MAIL_USERNAME', env('MAIL_USERNAME', 'youremail@gmail.com'));
+define('MAIL_PASSWORD', env('MAIL_PASSWORD', 'your-16-char-app-password'));
+define('MAIL_FROM_ADDRESS', env('MAIL_FROM_ADDRESS', 'youremail@gmail.com'));
+define('MAIL_FROM_NAME', env('MAIL_FROM_NAME', 'ShopMate Pakistan'));
+
+// ---------------------------------------------------------------------
 // Base paths — used by the autoloader, migrator, and includes later.
 // ---------------------------------------------------------------------
 define('BASE_PATH', dirname(__DIR__));

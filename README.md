@@ -89,6 +89,59 @@ hasn't seen before. To change the schema later, add a new file to
 Re-running `seed.php` is a safe no-op if data already exists; pass
 `--fresh` to wipe every seedable table and reseed from scratch.
 
+## Email setup
+
+Order confirmation emails (to the customer) and new-order notifications
+(to the store's contact email) are sent via a small built-in SMTP
+client (`app/Core/Mailer.php` — no Composer/PHPMailer dependency).
+
+**`.env.example` ships with dummy placeholder values** so the site
+runs out of the box without crashing — replace them with real
+credentials before emails will actually send:
+
+```
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_ENCRYPTION=tls
+MAIL_USERNAME=youremail@gmail.com
+MAIL_PASSWORD=your-16-char-app-password
+MAIL_FROM_ADDRESS=youremail@gmail.com
+MAIL_FROM_NAME="ShopMate Pakistan"
+```
+
+**To use Gmail:** you can't use your normal Gmail password over SMTP —
+Google requires an **App Password** instead:
+1. Turn on 2-Step Verification on the Google account:
+   <https://myaccount.google.com/security>
+2. Generate an App Password: <https://myaccount.google.com/apppasswords>
+3. Put that 16-character password in `MAIL_PASSWORD` (keep the spaces
+   out), and the Gmail address itself in `MAIL_USERNAME` and
+   `MAIL_FROM_ADDRESS`.
+
+**To test locally without sending real email**, use
+[Mailtrap](https://mailtrap.io) (free tier, catches emails in a fake
+inbox instead of delivering them) — sign up, grab its SMTP credentials,
+and use those instead of Gmail's.
+
+**Email sending failure never blocks checkout.** If the SMTP server is
+unreachable or credentials are wrong, the order still saves
+successfully — the failure is only logged to `storage/logs/php-error.log`.
+This was deliberately verified: placing an order with the dummy
+placeholder credentials above still returns a successful order every
+time, it just can't actually send the email.
+
+**A note on latency:** the built-in SMTP client is a direct, synchronous
+connection — no background queue. On PHP-FPM (most real hosting), the
+customer's response is sent before the email attempt starts
+(`fastcgi_finish_request()`), so a slow/broken mail server adds no
+wait time. On other setups (e.g. plain `mod_php`, or PHP's built-in
+dev server used for local testing), that early-flush trick isn't
+available, so a broken/unreachable SMTP server can add a few seconds
+to checkout — bounded to a low, fixed per-connection timeout, never
+unbounded. If this becomes noticeable at real scale, the fix is moving
+email sending to a background job/cron queue rather than sending it
+inline during the request.
+
 ---
 
 ## Roadmap
@@ -193,9 +246,17 @@ Re-running `seed.php` is a safe no-op if data already exists; pass
       `mailto:` shortcut, and a delete option. The admin sidebar shows
       an unread-count badge next to "Messages", computed live from the
       database on every page load.
-- [ ] **Order confirmation email/SMS.** Orders are created successfully
-      but nothing is sent to the customer beyond the on-page success
-      screen.
+- [x] **Order confirmation email.** Sent via a small built-in SMTP
+      client (`app/Core/Mailer.php`) — both a confirmation to the
+      customer (if they gave an email) and a new-order notification to
+      the store's contact email. Ships with dummy placeholder SMTP
+      credentials in `.env.example` — see the "Email setup" section
+      above for how to swap in real ones (Gmail App Password or
+      Mailtrap for local testing). Sending never blocks or fails an
+      order — verified end-to-end with unreachable dummy credentials.
+      **SMS is still not implemented** — would need a paid SMS gateway
+      (e.g. Twilio, or a local Pakistani provider) and an account/API
+      key, which wasn't set up as part of this pass.
 - [ ] **Password reset flow** for customer accounts ("Forgot password?"
       is currently a dead link).
 - [ ] **Pagination for admin tables** (products/orders/customers) —
