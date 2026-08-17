@@ -257,11 +257,31 @@ inline during the request.
       **SMS is still not implemented** — would need a paid SMS gateway
       (e.g. Twilio, or a local Pakistani provider) and an account/API
       key, which wasn't set up as part of this pass.
-- [ ] **Password reset flow** for customer accounts ("Forgot password?"
-      is currently a dead link).
+- [x] **Password reset flow.** `forgot-password.php` (request a reset
+      link by email) and `reset-password.php` (set a new password) —
+      the `login.php` "Forgot password?" link is no longer dead. Tokens
+      are one-time-use, expire after 1 hour, and only their SHA-256
+      hash is stored (never the raw token — same principle as password
+      storage). Requesting a reset for an email that doesn't have an
+      account shows the exact same "check your email" message as one
+      that does, so the form can't be used to discover which emails are
+      registered. Uses the same `app/Core/Mailer.php` built for order
+      confirmations.
 - [ ] **Pagination for admin tables** (products/orders/customers) —
       fine for a small catalog, will need it once the catalog grows.
-- [ ] **Real payment gateway integration** (JazzCash/EasyPaisa/card) —
-      currently payment method is just recorded, not actually processed.
+- [x] **Payment method: Cash on Delivery only, for now — by design.**
+      Checkout still shows JazzCash/EasyPaisa/Card/Bank Transfer as
+      options (so the UI and `orders.payment_method` schema are ready
+      for them later), but none of those are wired to a real payment
+      gateway — no money actually moves for any option except COD.
+      This is a deliberate scope decision for the current stage of the
+      business, not an oversight: integrating a real gateway (JazzCash/
+      EasyPaisa's merchant APIs, or a card processor) means signing up
+      for a merchant account with that provider, getting API
+      credentials, and handling their specific callback/webhook flow —
+      real integration work for a later phase once it's actually
+      needed. Selecting a non-COD payment method at checkout today
+      creates a normal order with that method recorded, but the
+      customer isn't actually charged.
 - [ ] Delete or repurpose `assets/js/data.js` — unused now that every
       page reads from the database.

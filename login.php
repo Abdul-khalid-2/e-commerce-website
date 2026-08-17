@@ -121,7 +121,7 @@ require __DIR__ . '/includes/navbar.php';
                   <input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? 'index.php', ENT_QUOTES, 'UTF-8') ?>">
                   <div class="mb-3"><label class="form-label">Email</label><div class="input-group"><span class="input-group-text bg-soft"><i class="bi bi-envelope"></i></span><input type="email" name="email" class="form-control" placeholder="you@example.com" required></div></div>
                   <div class="mb-3"><label class="form-label">Password</label><div class="input-group"><span class="input-group-text bg-soft"><i class="bi bi-lock"></i></span><input type="password" name="password" class="form-control" id="loginPass" placeholder="Enter password" required><button class="btn btn-outline-secondary" type="button" onclick="togglePass('loginPass', this)"><i class="bi bi-eye"></i></button></div></div>
-                  <div class="d-flex justify-content-between mb-3"><div class="form-check"><input class="form-check-input" type="checkbox" id="remember"><label class="form-check-label fs-7" for="remember">Remember me</label></div><a href="#" class="fs-7 text-brand">Forgot password?</a></div>
+                  <div class="d-flex justify-content-between mb-3"><div class="form-check"><input class="form-check-input" type="checkbox" id="remember"><label class="form-check-label fs-7" for="remember">Remember me</label></div><a href="forgot-password.php" class="fs-7 text-brand">Forgot password?</a></div>
                   <button type="submit" class="btn-brand w-100">Login</button>
                 </form>
                 <div class="text-center my-3 text-muted-2 fs-7">or login with</div>

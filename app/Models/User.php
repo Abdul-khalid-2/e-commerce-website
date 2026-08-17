@@ -48,4 +48,54 @@ final class User extends Model
     {
         return password_verify($plainPassword, $user['password_hash']);
     }
+
+    /**
+     * Stores a hash of the reset token (never the raw token — same
+     * principle as password storage: even a DB compromise shouldn't
+     * hand out directly-usable secrets) with an expiry.
+     */
+    public static function setResetToken(int $userId, string $tokenHash, string $expiresAt): void
+    {
+        static::update($userId, [
+            'reset_token_hash' => $tokenHash,
+            'reset_token_expires_at' => $expiresAt,
+        ]);
+    }
+
+    /**
+     * Looks up a user by email and checks the given raw token hashes to
+     * their stored reset_token_hash and hasn't expired. Returns null on
+     * any mismatch (wrong email, wrong token, or expired) without
+     * revealing which — callers should show one generic message either way.
+     */
+    public static function findByValidResetToken(string $email, string $rawToken): ?array
+    {
+        $user = self::findByEmail($email);
+        if (!$user || empty($user['reset_token_hash']) || empty($user['reset_token_expires_at'])) {
+            return null;
+        }
+        if (strtotime($user['reset_token_expires_at']) < time()) {
+            return null;
+        }
+        $tokenHash = hash('sha256', $rawToken);
+        if (!hash_equals($user['reset_token_hash'], $tokenHash)) {
+            return null;
+        }
+        return $user;
+    }
+
+    public static function clearResetToken(int $userId): void
+    {
+        static::update($userId, [
+            'reset_token_hash' => null,
+            'reset_token_expires_at' => null,
+        ]);
+    }
+
+    public static function updatePassword(int $userId, string $newPlainPassword): void
+    {
+        static::update($userId, [
+            'password_hash' => password_hash($newPlainPassword, PASSWORD_DEFAULT),
+        ]);
+    }
 }
