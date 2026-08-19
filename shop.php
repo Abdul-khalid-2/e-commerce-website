@@ -235,7 +235,11 @@ require __DIR__ . '/includes/navbar.php';
           grid.className = 'row g-3 product-list-view';
           grid.innerHTML = shown.map(p => `<div class="col-12" data-aos="fade-up">${renderProductCard(p, true)}</div>`).join('');
         }
-        if (window.AOS) AOS.refresh();
+        // See wishlist.php for why this must be refreshHard(), not
+        // refresh() - the grid is fully rebuilt above via innerHTML on
+        // every filter/sort/page change, so refresh() alone would leave
+        // newly-created cards permanently invisible.
+        if (window.AOS) AOS.refreshHard();
         syncWishlistUI();
       }
 

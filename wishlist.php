@@ -86,7 +86,16 @@ require __DIR__ . '/includes/navbar.php';
               </div>
             </div>`).join('')}
           </div>`;
-        if (window.AOS) AOS.refresh();
+        // Use refreshHard(), not refresh(): the wishlist grid is fully
+        // torn down and rebuilt on every add/remove (innerHTML above),
+        // so every card is a brand-new DOM node each time. AOS.refresh()
+        // only recalculates positions for elements it already knows
+        // about - it doesn't discover new ones - so after a remove, the
+        // freshly-rendered remaining cards were never registered with
+        // AOS and stayed stuck at their pre-animation state (opacity:0),
+        // i.e. invisible, until a full page reload let AOS re-scan the
+        // DOM from scratch. refreshHard() re-scans immediately instead.
+        if (window.AOS) AOS.refreshHard();
         syncWishlistUI();
       }
       function removeWish(id) {
