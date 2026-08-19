@@ -147,7 +147,7 @@ require __DIR__ . '/includes/navbar.php';
         </div>
         <div class="position-relative">
           <button class="hero-arrow prev" onclick="scrollBestSellers(-1)" style="left:-10px;"><i class="bi bi-chevron-left"></i></button>
-          <div class="d-flex overflow-auto gap-3 pb-3" id="bestSellersRow" style="scroll-snap-type:x mandatory;scrollbar-width:none;">
+          <div class="d-flex overflow-auto gap-3 pb-3" id="bestSellersRow" style="scroll-snap-type:x proximity;scrollbar-width:none;">
 <?php foreach ($bestSellers as $p): ?>
             <div style="min-width:240px;max-width:240px;scroll-snap-align:start;"><?= render_product_card($p) ?></div>
 <?php endforeach; ?>
@@ -232,19 +232,48 @@ require __DIR__ . '/includes/navbar.php';
       function scrollBestSellers(dir) {
         document.getElementById('bestSellersRow').scrollBy({ left: dir * 300, behavior: 'smooth' });
       }
-      function autoScrollBestSellers() {
+
+      // Auto-scroll the Best Sellers row with a single continuous
+      // requestAnimationFrame loop instead of a fast setInterval. The old
+      // version ticked every 40ms and mixed an 'auto' scrollBy with an
+      // occasional 'smooth' scrollTo reset, which fought each other and
+      // made the row jump/jitter left-right instead of scrolling smoothly.
+      (function initBestSellersAutoScroll() {
         const row = document.getElementById('bestSellersRow');
         if (!row) return;
-        if (row.scrollLeft + row.clientWidth >= row.scrollWidth - 10) {
-          row.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-          row.scrollBy({ left: 1, behavior: 'auto' });
+
+        const PIXELS_PER_SECOND = 40; // slow, readable scroll speed
+        let paused = false;
+        let lastTime = null;
+
+        function step(timestamp) {
+          if (lastTime === null) lastTime = timestamp;
+          const deltaSeconds = (timestamp - lastTime) / 1000;
+          lastTime = timestamp;
+
+          if (!paused) {
+            const atEnd = row.scrollLeft + row.clientWidth >= row.scrollWidth - 1;
+            if (atEnd) {
+              row.scrollLeft = 0;
+            } else {
+              row.scrollLeft += PIXELS_PER_SECOND * deltaSeconds;
+            }
+          }
+          requestAnimationFrame(step);
         }
-      }
+
+        // Pause while the user is hovering, touching, or manually
+        // scrolling the row so autoplay doesn't fight their input.
+        row.addEventListener('mouseenter', () => { paused = true; });
+        row.addEventListener('mouseleave', () => { paused = false; lastTime = null; });
+        row.addEventListener('touchstart', () => { paused = true; }, { passive: true });
+        row.addEventListener('touchend', () => { paused = false; lastTime = null; });
+
+        requestAnimationFrame(step);
+      })();
 
       initCommonPhp();
       resetHeroTimer();
-      setInterval(autoScrollBestSellers, 40);
     </script>
   </body>
 </html>
