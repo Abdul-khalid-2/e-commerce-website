@@ -64,6 +64,11 @@ require __DIR__ . '/includes/navbar.php';
 
       let step = 1;
       let selectedPayment = 'cod';
+      // Populated by nextStep() when leaving step 1, since the shipping
+      // <input> elements are destroyed the moment renderStep() moves on
+      // to step 2/3 - reading document.getElementById('fullName') etc.
+      // from step 3 or placeOrder() would return null and throw.
+      let shippingInfo = { name: '', phone: '', email: '', address: '', city: '', postal: '', notes: '' };
       // Re-apply the discount code applied on cart.php, if any - it was
       // only ever kept in a local JS variable there, so it silently
       // vanished the moment you navigated to this page.
@@ -158,18 +163,18 @@ require __DIR__ . '/includes/navbar.php';
           content.innerHTML = `
             <h5 class="fw-700 mb-3">Shipping Information</h5>
             <div class="row g-3">
-              <div class="col-md-6"><label class="form-label">Full Name *</label><input type="text" class="form-control" id="fullName" value="${prefillName.replace(/"/g,'&quot;')}" required></div>
-              <div class="col-md-6"><label class="form-label">Phone Number *</label><input type="tel" class="form-control" id="phone" placeholder="03XX-XXXXXXX" required></div>
-              <div class="col-12"><label class="form-label">Email Address</label><input type="email" class="form-control" id="email" value="${prefillEmail.replace(/"/g,'&quot;')}" placeholder="you@example.com"></div>
-              <div class="col-12"><label class="form-label">Street Address *</label><input type="text" class="form-control" id="address" required></div>
+              <div class="col-md-6"><label class="form-label">Full Name *</label><input type="text" class="form-control" id="fullName" value="${(shippingInfo.name || prefillName).replace(/"/g,'&quot;')}" required></div>
+              <div class="col-md-6"><label class="form-label">Phone Number *</label><input type="tel" class="form-control" id="phone" value="${shippingInfo.phone.replace(/"/g,'&quot;')}" placeholder="03XX-XXXXXXX" required></div>
+              <div class="col-12"><label class="form-label">Email Address</label><input type="email" class="form-control" id="email" value="${(shippingInfo.email || prefillEmail).replace(/"/g,'&quot;')}" placeholder="you@example.com"></div>
+              <div class="col-12"><label class="form-label">Street Address *</label><input type="text" class="form-control" id="address" value="${shippingInfo.address.replace(/"/g,'&quot;')}" required></div>
               <div class="col-md-6"><label class="form-label">City *</label>
                 <select class="form-select" id="city" required>
                   <option value="">Select City</option>
-                  ${PAKISTAN_CITIES.map(c => `<option value="${c}">${c}</option>`).join('')}
+                  ${PAKISTAN_CITIES.map(c => `<option value="${c}" ${shippingInfo.city === c ? 'selected' : ''}>${c}</option>`).join('')}
                 </select>
               </div>
-              <div class="col-md-6"><label class="form-label">Postal Code</label><input type="text" class="form-control" id="postal" placeholder="e.g. 54000"></div>
-              <div class="col-12"><label class="form-label">Order Notes (optional)</label><textarea class="form-control" id="notes" rows="2" placeholder="Any special delivery instructions..."></textarea></div>
+              <div class="col-md-6"><label class="form-label">Postal Code</label><input type="text" class="form-control" id="postal" value="${shippingInfo.postal.replace(/"/g,'&quot;')}" placeholder="e.g. 54000"></div>
+              <div class="col-12"><label class="form-label">Order Notes (optional)</label><textarea class="form-control" id="notes" rows="2" placeholder="Any special delivery instructions...">${shippingInfo.notes}</textarea></div>
             </div>
             <div class="d-flex justify-content-end mt-4">
               <button class="btn-brand" onclick="nextStep()">Continue to Payment <i class="bi bi-arrow-right ms-1"></i></button>
@@ -203,10 +208,7 @@ require __DIR__ . '/includes/navbar.php';
             </div>`;
           renderPaymentDetails();
         } else if (step === 3) {
-          const name = document.getElementById('fullName').value;
-          const phone = document.getElementById('phone').value;
-          const address = document.getElementById('address').value;
-          const city = document.getElementById('city').value;
+          const { name, phone, address, city } = shippingInfo;
           const paymentName = { cod: 'Cash on Delivery', jazzcash: 'JazzCash', easypaisa: 'EasyPaisa', bank_transfer: 'Bank Transfer', card: 'Credit/Debit Card' }[selectedPayment];
           content.innerHTML = `
             <h5 class="fw-700 mb-3">Review Your Order</h5>
@@ -283,6 +285,12 @@ require __DIR__ . '/includes/navbar.php';
           const city = document.getElementById('city').value;
           if (!name || !phone || !address || !city) { showToast('Please fill all required fields'); return; }
           if (!/^03\d{2}-?\d{7}$/.test(phone.replace(/\s/g, '')) && !/^\+92\d{10}$/.test(phone.replace(/\s/g, ''))) { showToast('Please enter a valid Pakistani phone number'); return; }
+          shippingInfo = {
+            name, phone, address, city,
+            email: document.getElementById('email').value.trim(),
+            postal: document.getElementById('postal').value.trim(),
+            notes: document.getElementById('notes').value.trim(),
+          };
         }
         step++;
         renderCheckout();
@@ -295,12 +303,13 @@ require __DIR__ . '/includes/navbar.php';
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Placing Order...';
 
         const payload = new URLSearchParams({
-          customer_name: document.getElementById('fullName').value,
-          customer_phone: document.getElementById('phone').value,
-          customer_email: document.getElementById('email').value,
-          shipping_address: document.getElementById('address').value,
-          city: document.getElementById('city').value,
-          postal_code: document.getElementById('postal').value,
+          customer_name: shippingInfo.name,
+          customer_phone: shippingInfo.phone,
+          customer_email: shippingInfo.email,
+          shipping_address: shippingInfo.address,
+          city: shippingInfo.city,
+          postal_code: shippingInfo.postal,
+          notes: shippingInfo.notes,
           payment_method: selectedPayment,
           csrf_token: window.CSRF_TOKEN || '',
         });
