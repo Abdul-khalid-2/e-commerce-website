@@ -179,19 +179,21 @@ require __DIR__ . '/includes/navbar.php';
             <h5 class="fw-700 mb-3">Payment Method</h5>
             <div class="d-flex flex-column gap-2">
               ${[
-                { id: 'cod', icon: 'bi-cash-coin', name: 'Cash on Delivery', desc: 'Pay when you receive your order' },
-                { id: 'jazzcash', icon: 'bi-wallet2', name: 'JazzCash', desc: 'Pay via JazzCash mobile wallet' },
-                { id: 'easypaisa', icon: 'bi-wallet', name: 'EasyPaisa', desc: 'Pay via EasyPaisa mobile wallet' },
-                { id: 'bank_transfer', icon: 'bi-bank', name: 'Bank Transfer', desc: 'Transfer to our bank account' },
-                { id: 'card', icon: 'bi-credit-card', name: 'Credit/Debit Card', desc: 'Visa, Mastercard, UnionPay' }
+                { id: 'cod', icon: 'bi-cash-coin', name: 'Cash on Delivery', desc: 'Pay when you receive your order', enabled: true },
+                { id: 'jazzcash', icon: 'bi-wallet2', name: 'JazzCash', desc: 'Pay via JazzCash mobile wallet', enabled: false },
+                { id: 'easypaisa', icon: 'bi-wallet', name: 'EasyPaisa', desc: 'Pay via EasyPaisa mobile wallet', enabled: false },
+                { id: 'bank_transfer', icon: 'bi-bank', name: 'Bank Transfer', desc: 'Transfer to our bank account', enabled: false },
+                { id: 'card', icon: 'bi-credit-card', name: 'Credit/Debit Card', desc: 'Visa, Mastercard, UnionPay', enabled: false }
               ].map(opt => `
-                <div class="payment-option ${selectedPayment === opt.id ? 'selected' : ''}" onclick="selectPayment('${opt.id}')">
+                <div class="payment-option ${selectedPayment === opt.id ? 'selected' : ''} ${opt.enabled ? '' : 'disabled'}" ${opt.enabled ? `onclick="selectPayment('${opt.id}')"` : ''} title="${opt.enabled ? '' : 'Coming soon'}">
                   <i class="bi ${opt.icon}"></i>
                   <div class="flex-grow-1">
                     <div class="fw-600">${opt.name}</div>
                     <small class="text-muted-2">${opt.desc}</small>
                   </div>
-                  <i class="bi bi-check-circle-fill ${selectedPayment === opt.id ? 'text-brand' : ''}" style="opacity:${selectedPayment === opt.id ? '1' : '0'};"></i>
+                  ${opt.enabled
+                    ? `<i class="bi bi-check-circle-fill ${selectedPayment === opt.id ? 'text-brand' : ''}" style="opacity:${selectedPayment === opt.id ? '1' : '0'};"></i>`
+                    : `<span class="payment-option-badge">Coming Soon</span>`}
                 </div>`).join('')}
             </div>
             <div id="paymentDetails" class="mt-3"></div>
@@ -239,13 +241,19 @@ require __DIR__ . '/includes/navbar.php';
         }
       }
 
+      const ENABLED_PAYMENT_METHODS = ['cod'];
+
       function selectPayment(id) {
+        if (!ENABLED_PAYMENT_METHODS.includes(id)) return; // disabled options aren't clickable, but guard anyway
         selectedPayment = id;
         const opts = ['cod','jazzcash','easypaisa','bank_transfer','card'];
         document.querySelectorAll('.payment-option').forEach((el, i) => {
           el.classList.toggle('selected', opts[i] === id);
-          el.querySelector('.bi-check-circle-fill').style.opacity = opts[i] === id ? '1' : '0';
-          el.querySelector('.bi-check-circle-fill').className = 'bi bi-check-circle-fill ' + (opts[i] === id ? 'text-brand' : '');
+          const check = el.querySelector('.bi-check-circle-fill');
+          if (check) {
+            check.style.opacity = opts[i] === id ? '1' : '0';
+            check.className = 'bi bi-check-circle-fill ' + (opts[i] === id ? 'text-brand' : '');
+          }
         });
         renderPaymentDetails();
       }

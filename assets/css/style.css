@@ -883,6 +883,21 @@ a { text-decoration: none; color: inherit; }
 .payment-option:hover { border-color: var(--brand); }
 .payment-option.selected { border-color: var(--brand); background: var(--brand-light); }
 .payment-option i { font-size: 1.5rem; color: var(--brand); }
+.payment-option.disabled { cursor: not-allowed; opacity: 0.55; }
+.payment-option.disabled:hover { border-color: var(--border); }
+.payment-option.disabled i { color: var(--text-muted); }
+.payment-option-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
 
 .form-control, .form-select {
   background: var(--bg);
