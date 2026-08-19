@@ -104,16 +104,15 @@ require __DIR__ . '/includes/navbar.php';
       function onWishlistLoaded() { renderWishlist(); }
 
       initCommonPhp();
-      // For logged-in users, initCommonPhp() kicks off an async fetch of
-      // the real server-side wishlist (loadWishlistFromServer()), which
-      // calls onWishlistLoaded() -> renderWishlist() once it resolves.
-      // Rendering again here, before that resolves, used to cause a
-      // flash of the (possibly empty/stale, localStorage-seeded) list
-      // immediately followed by the real one popping in - which looked
-      // like "removing an item shows a blank page, then everything
-      // reappears". Guests have no server round trip, so render them
-      // immediately.
-      if (!window.IS_LOGGED_IN) renderWishlist();
+      // Render immediately from whatever local state we have (instant,
+      // no flash of blank content). For logged-in users, initCommonPhp()
+      // also kicks off an async fetch of the authoritative server-side
+      // wishlist in the background; once that resolves it calls
+      // onWishlistLoaded() -> renderWishlist() again to correct anything
+      // that was stale. Now that removeWish() actually persists removals
+      // to the server (see above), that second render agrees with this
+      // one instead of undoing it.
+      renderWishlist();
     </script>
   </body>
 </html>
