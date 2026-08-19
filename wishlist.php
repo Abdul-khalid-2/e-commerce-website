@@ -90,15 +90,30 @@ require __DIR__ . '/includes/navbar.php';
         syncWishlistUI();
       }
       function removeWish(id) {
-        const w = getWishlist().filter(x => x !== id);
-        setWishlist(w);
+        // toggleWishlist() already knows how to remove an id, persist the
+        // change (server call for logged-in users, localStorage for
+        // guests) and show a toast - reuse it instead of only touching
+        // local state, which is what caused the removal not to stick:
+        // the old code called setWishlist() directly, which never told
+        // the server, so the very next wishlist reload brought the item
+        // back.
+        if (!isWishlisted(id)) return;
+        toggleWishlist(id);
         renderWishlist();
-        showToast('Removed from wishlist');
       }
       function onWishlistLoaded() { renderWishlist(); }
 
       initCommonPhp();
-      renderWishlist();
+      // For logged-in users, initCommonPhp() kicks off an async fetch of
+      // the real server-side wishlist (loadWishlistFromServer()), which
+      // calls onWishlistLoaded() -> renderWishlist() once it resolves.
+      // Rendering again here, before that resolves, used to cause a
+      // flash of the (possibly empty/stale, localStorage-seeded) list
+      // immediately followed by the real one popping in - which looked
+      // like "removing an item shows a blank page, then everything
+      // reappears". Guests have no server round trip, so render them
+      // immediately.
+      if (!window.IS_LOGGED_IN) renderWishlist();
     </script>
   </body>
 </html>
