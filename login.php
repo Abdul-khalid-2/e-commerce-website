@@ -41,6 +41,18 @@ function log_user_in(array $user): void
     $_SESSION['user_name'] = $user['name'];
     $_SESSION['user_email'] = $user['email'];
     Cart::mergeSessionIntoUser($oldSessionId, (int) $user['id']);
+
+    // An admin account is still a row in `users`, so it can log in here
+    // like anyone else - but until now that just dropped them on the
+    // storefront with no way to reach the dashboard (the customer navbar
+    // has no admin link, and admin/index.php checks $_SESSION['admin_id'],
+    // which this form never set). Since they've already proven their
+    // password, also start the admin session here so they land on the
+    // dashboard instead of having to separately visit admin/login.php.
+    if (($user['role'] ?? null) === 'admin') {
+        $_SESSION['admin_id'] = (int) $user['id'];
+        $_SESSION['admin_name'] = $user['name'];
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -63,7 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'Incorrect email or password';
             } else {
                 log_user_in($user);
-                header('Location: ' . safe_redirect_target());
+                $destination = ($user['role'] ?? null) === 'admin' ? 'admin/index.php' : safe_redirect_target();
+                header('Location: ' . $destination);
                 exit;
             }
         }

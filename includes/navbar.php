@@ -24,6 +24,7 @@ $navCategories = Category::active();
 
 $currentUserId = $_SESSION['user_id'] ?? null;
 $currentUserName = $_SESSION['user_name'] ?? null;
+$isAdminSession = !empty($_SESSION['admin_id']);
 
 $navCart = Cart::peekForSession(session_id(), $currentUserId);
 $cartCount = $navCart ? Cart::getItemCount((int) $navCart['id']) : 0;
@@ -77,6 +78,10 @@ function nav_active(string $key, string $activePage): string
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="<?= $basePath ?>orders.php">My Orders</a></li>
             <li><a class="dropdown-item" href="<?= $basePath ?>wishlist.php">My Wishlist</a></li>
+<?php if ($isAdminSession): ?>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="<?= $basePath ?>admin/index.php"><i class="bi bi-speedometer2 me-1"></i> Admin Dashboard</a></li>
+<?php endif; ?>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="<?= $basePath ?>logout.php">Logout</a></li>
           </ul>
@@ -116,6 +121,9 @@ function nav_active(string $key, string $activePage): string
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('contact', $activePage) ?>" href="<?= $basePath ?>contact.php">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('orders', $activePage) ?>" href="<?= $basePath ?>orders.php">Track Order</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('wishlist', $activePage) ?>" href="<?= $basePath ?>wishlist.php">Wishlist</a></li>
+<?php if ($isAdminSession): ?>
+        <li class="nav-item"><a class="nav-link-custom" href="<?= $basePath ?>admin/index.php"><i class="bi bi-speedometer2 me-1"></i> Admin Dashboard</a></li>
+<?php endif; ?>
         <li class="nav-item mt-3 d-flex gap-2">
           <button class="theme-toggle" onclick="toggleTheme()"><i class="bi bi-moon-fill" id="themeIconMobile"></i></button>
 <?php if ($currentUserId): ?>
