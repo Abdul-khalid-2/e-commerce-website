@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 use App\Models\Cart;
 use App\Models\Category;
+use App\Models\User;
 
 $activePage ??= '';
 $basePath ??= '';
@@ -25,6 +26,22 @@ $navCategories = Category::active();
 $currentUserId = $_SESSION['user_id'] ?? null;
 $currentUserName = $_SESSION['user_name'] ?? null;
 $isAdminSession = !empty($_SESSION['admin_id']);
+
+// login.php only sets $_SESSION['admin_id'] at the moment of login, so any
+// session that was already active before that fix shipped (like one you
+// logged into earlier and never logged out of) won't have it - and never
+// will, until the session cookie expires or the user logs out. Rather than
+// require everyone to re-login, check the real role once per session here
+// and backfill admin_id so the dashboard link (and admin/index.php's
+// Auth::requireAdmin()) work immediately.
+if ($currentUserId && !$isAdminSession) {
+    $sessionUser = User::find((int) $currentUserId);
+    if (($sessionUser['role'] ?? null) === 'admin') {
+        $_SESSION['admin_id'] = (int) $currentUserId;
+        $_SESSION['admin_name'] = $sessionUser['name'];
+        $isAdminSession = true;
+    }
+}
 
 $navCart = Cart::peekForSession(session_id(), $currentUserId);
 $cartCount = $navCart ? Cart::getItemCount((int) $navCart['id']) : 0;
