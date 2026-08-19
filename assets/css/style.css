@@ -67,6 +67,10 @@ a { text-decoration: none; color: inherit; }
 .fs-8 { font-size: 0.75rem; }
 
 .btn-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
   background: var(--brand);
   color: #fff;
   border: none;
