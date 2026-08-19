@@ -145,6 +145,7 @@ require __DIR__ . '/includes/navbar.php';
 
       async function clearCart() {
         await clearCartServer();
+        try { sessionStorage.removeItem('discountCode'); } catch (err) { /* storage unavailable */ }
         showToast('Cart cleared');
         window.location.reload();
       }
@@ -154,6 +155,12 @@ require __DIR__ . '/includes/navbar.php';
         if (code === 'SHOP10') {
           const subtotal = recalcTotals();
           discountApplied = Math.round(subtotal * 0.1);
+          // Remember the code so checkout.php can re-apply the same
+          // discount there - previously it only lived in this page's
+          // local variable and was lost the moment you clicked
+          // "Proceed to Checkout". Guarded: some browsers/extensions
+          // block storage access and throw instead of failing quietly.
+          try { sessionStorage.setItem('discountCode', code); } catch (err) { /* storage unavailable - discount just won't carry over */ }
           showToast('10% discount applied!', 'success');
           recalcTotals();
         } else {

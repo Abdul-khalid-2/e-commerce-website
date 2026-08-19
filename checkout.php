@@ -64,9 +64,28 @@ require __DIR__ . '/includes/navbar.php';
 
       let step = 1;
       let selectedPayment = 'cod';
+      // Re-apply the discount code applied on cart.php, if any - it was
+      // only ever kept in a local JS variable there, so it silently
+      // vanished the moment you navigated to this page.
+      //
+      // Wrapped in try/catch: some browsers/extensions (privacy tools,
+      // certain private-browsing modes, strict cookie/storage settings)
+      // throw a SecurityError on sessionStorage access instead of just
+      // returning null. Since this line runs before anything else,
+      // an uncaught throw here would silently kill the whole script
+      // and leave the page blank with no visible error at all.
+      let discountCode = '';
+      try {
+        discountCode = sessionStorage.getItem('discountCode') || '';
+      } catch (err) {
+        console.warn('[checkout.php] sessionStorage unavailable, skipping discount carry-over:', err);
+      }
 
       function cartSubtotal() {
         return cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      }
+      function discountAmount(subtotal) {
+        return discountCode === 'SHOP10' ? Math.round(subtotal * 0.1) : 0;
       }
 
       function renderCheckout() {
@@ -83,7 +102,8 @@ require __DIR__ . '/includes/navbar.php';
 
         const subtotal = cartSubtotal();
         const shipping = subtotal > 2000 ? 0 : 200;
-        const total = subtotal + shipping;
+        const discount = discountAmount(subtotal);
+        const total = subtotal + shipping - discount;
 
         document.getElementById('checkoutContent').innerHTML = `
           <div class="row g-4">
@@ -124,6 +144,7 @@ require __DIR__ . '/includes/navbar.php';
                 <hr class="border-soft">
                 <div class="summary-row"><span>Subtotal</span><span>${formatPKR(subtotal)}</span></div>
                 <div class="summary-row"><span>Shipping</span><span>${shipping === 0 ? 'FREE' : formatPKR(shipping)}</span></div>
+                ${discount > 0 ? `<div class="summary-row text-success"><span>Discount (${discountCode})</span><span>-${formatPKR(discount)}</span></div>` : ''}
                 <div class="summary-total d-flex justify-content-between"><span>Total</span><span class="text-brand">${formatPKR(total)}</span></div>
               </div>
             </div>
@@ -307,8 +328,27 @@ require __DIR__ . '/includes/navbar.php';
         }
       }
 
-      initCommonPhp();
-      renderCheckout();
+      try {
+        if (typeof initCommonPhp !== 'function' || typeof renderCheckout !== 'function') {
+          throw new Error('assets/js/common.js did not load - initCommonPhp/renderCheckout are undefined. Check the Network tab for a failed/404 request to assets/js/common.js.');
+        }
+        initCommonPhp();
+        renderCheckout();
+      } catch (err) {
+        // Surface failures instead of leaving #checkoutContent silently
+        // blank - makes the real error visible on-page (and in console
+        // with a distinct, greppable prefix) instead of a mystery blank
+        // page.
+        console.error('[checkout.php] failed to render:', err);
+        document.getElementById('checkoutContent').innerHTML = `
+          <div class="empty-state">
+            <i class="bi bi-exclamation-triangle text-danger"></i>
+            <h3>Something went wrong loading checkout</h3>
+            <p class="text-muted-2 mb-2">${(err && err.message) ? err.message.replace(/</g, '&lt;') : 'Unknown error'}</p>
+            <p class="text-muted-2 mb-4">Open your browser's DevTools Console for the full error, or try reloading the page.</p>
+            <button class="btn-brand" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise me-1"></i> Reload Page</button>
+          </div>`;
+      }
     </script>
   </body>
 </html>
