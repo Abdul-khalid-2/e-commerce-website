@@ -107,7 +107,7 @@ require __DIR__ . '/includes/navbar.php';
 
         document.getElementById('checkoutContent').innerHTML = `
           <div class="row g-4">
-            <div class="col-lg-8" data-aos="fade-up">
+            <div class="col-lg-8">
               <div class="checkout-progress">
                 <div class="progress-step ${step>=1?'active':''} ${step>1?'completed':''}">
                   <div class="progress-step-circle">${step>1?'<i class="bi bi-check"></i>':'1'}</div>
@@ -130,7 +130,7 @@ require __DIR__ . '/includes/navbar.php';
               </div>
             </div>
 
-            <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="col-lg-4">
               <div class="summary-card">
                 <h5 class="fw-700 mb-3">Order Summary</h5>
                 ${cart.map(item => `<div class="d-flex gap-2 mb-2 align-items-center">
@@ -309,7 +309,7 @@ require __DIR__ . '/includes/navbar.php';
           }
 
           document.getElementById('checkoutContent').innerHTML = `
-            <div class="text-center py-5" data-aos="zoom-in">
+            <div class="text-center py-5">
               <div class="success-check"><i class="bi bi-check-lg"></i></div>
               <h2 class="fw-700 mb-2">Order Placed Successfully!</h2>
               <p class="text-muted-2 mb-3">Thank you for your purchase. Your order number is:</p>
