@@ -15,7 +15,6 @@
 
 declare(strict_types=1);
 
-use App\Core\Auth;
 use App\Models\Cart;
 use App\Models\Category;
 
@@ -53,23 +52,10 @@ function nav_active(string $key, string $activePage): string
         <button class="theme-toggle d-none d-sm-inline-flex" onclick="toggleTheme()" title="Toggle theme"><i class="bi bi-moon-fill" id="themeIcon"></i></button>
         <a href="<?= $basePath ?>wishlist.php" class="icon-btn" title="Wishlist"><i class="bi bi-heart"></i><span class="wishlist-badge" style="display:none">0</span></a>
         <a href="<?= $basePath ?>cart.php" class="icon-btn" title="Cart"><i class="bi bi-cart3"></i><span class="cart-badge" style="display:<?= $cartCount > 0 ? 'flex' : 'none' ?>"><?= $cartCount ?></span></a>
-<?php if ($currentUserId): ?>
-        <div class="dropdown d-none d-sm-inline-flex ms-2">
-          <button class="btn-brand dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="bi bi-person-circle me-1"></i><?= htmlspecialchars(explode(' ', (string) $currentUserName)[0], ENT_QUOTES, 'UTF-8') ?></button>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="<?= $basePath ?>orders.php">My Orders</a></li>
-            <li><a class="dropdown-item" href="<?= $basePath ?>wishlist.php">My Wishlist</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="<?= $basePath ?>logout.php">Logout</a></li>
-          </ul>
-        </div>
-<?php else: ?>
-        <a href="<?= $basePath ?>login.php" class="btn-brand d-none d-sm-inline-flex ms-2">Login</a>
-<?php endif; ?>
       </div>
     </div>
     <div class="container d-none d-lg-block">
-      <ul class="navbar-nav flex-row gap-1 mt-2 pb-1">
+      <ul class="navbar-nav flex-row align-items-center gap-1 mt-2 pb-1">
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('home', $activePage) ?>" href="<?= $basePath ?>index.php">Home</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('shop', $activePage) ?>" href="<?= $basePath ?>shop.php">Shop</a></li>
 <?php if ($navCategories): ?>
@@ -85,8 +71,18 @@ function nav_active(string $key, string $activePage): string
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('about', $activePage) ?>" href="<?= $basePath ?>about.php">About</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('contact', $activePage) ?>" href="<?= $basePath ?>contact.php">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('orders', $activePage) ?>" href="<?= $basePath ?>orders.php">Track Order</a></li>
-<?php if (Auth::isAdmin()): ?>
-        <li class="nav-item"><a class="nav-link-custom <?= nav_active('admin', $activePage) ?>" href="<?= $basePath ?>admin/index.php">Admin</a></li>
+<?php if ($currentUserId): ?>
+        <li class="nav-item dropdown ms-auto">
+          <button class="btn-brand dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="bi bi-person-circle me-1"></i><?= htmlspecialchars(explode(' ', (string) $currentUserName)[0], ENT_QUOTES, 'UTF-8') ?></button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="<?= $basePath ?>orders.php">My Orders</a></li>
+            <li><a class="dropdown-item" href="<?= $basePath ?>wishlist.php">My Wishlist</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="<?= $basePath ?>logout.php">Logout</a></li>
+          </ul>
+        </li>
+<?php else: ?>
+        <li class="nav-item ms-auto"><a href="<?= $basePath ?>login.php" class="btn-brand">Login</a></li>
 <?php endif; ?>
       </ul>
     </div>
@@ -120,9 +116,6 @@ function nav_active(string $key, string $activePage): string
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('contact', $activePage) ?>" href="<?= $basePath ?>contact.php">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('orders', $activePage) ?>" href="<?= $basePath ?>orders.php">Track Order</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('wishlist', $activePage) ?>" href="<?= $basePath ?>wishlist.php">Wishlist</a></li>
-<?php if (Auth::isAdmin()): ?>
-        <li class="nav-item"><a class="nav-link-custom <?= nav_active('admin', $activePage) ?>" href="<?= $basePath ?>admin/index.php">Admin</a></li>
-<?php endif; ?>
         <li class="nav-item mt-3 d-flex gap-2">
           <button class="theme-toggle" onclick="toggleTheme()"><i class="bi bi-moon-fill" id="themeIconMobile"></i></button>
 <?php if ($currentUserId): ?>
