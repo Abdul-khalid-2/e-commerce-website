@@ -145,7 +145,7 @@ require __DIR__ . '/includes/navbar.php';
           <h2 class="section-title">Best Sellers</h2>
           <p class="section-sub">Our most popular products this week</p>
         </div>
-        <div class="position-relative">
+        <div class="position-relative" id="bestSellersCarousel">
           <button class="hero-arrow prev" onclick="scrollBestSellers(-1)" style="left:-10px;"><i class="bi bi-chevron-left"></i></button>
           <div class="d-flex overflow-auto gap-3 pb-3" id="bestSellersRow" style="scroll-snap-type:x proximity;scrollbar-width:none;">
 <?php foreach ($bestSellers as $p): ?>
@@ -229,8 +229,26 @@ require __DIR__ . '/includes/navbar.php';
         if (heroSlideCount > 1) heroTimer = setInterval(() => changeHero(1), 5000);
       }
 
+      // Best Sellers row: manual arrow-button scrolling and the
+      // autoplay loop below share this pause state so they don't fight
+      // each other. Previously the arrows fired a 'smooth' scrollBy
+      // while the autoplay loop kept nudging scrollLeft on every frame
+      // at the same time, so the row would jump/stutter when an arrow
+      // was clicked.
+      let bestSellersHovering = false;
+      let bestSellersManualPauseUntil = 0;
+
+      function isBestSellersPaused() {
+        return bestSellersHovering || Date.now() < bestSellersManualPauseUntil;
+      }
+
       function scrollBestSellers(dir) {
-        document.getElementById('bestSellersRow').scrollBy({ left: dir * 300, behavior: 'smooth' });
+        const row = document.getElementById('bestSellersRow');
+        if (!row) return;
+        // Pause autoplay for a moment so it doesn't collide with this
+        // manual smooth-scroll animation.
+        bestSellersManualPauseUntil = Date.now() + 1000;
+        row.scrollBy({ left: dir * 300, behavior: 'smooth' });
       }
 
       // Auto-scroll the Best Sellers row with a single continuous
@@ -240,10 +258,10 @@ require __DIR__ . '/includes/navbar.php';
       // made the row jump/jitter left-right instead of scrolling smoothly.
       (function initBestSellersAutoScroll() {
         const row = document.getElementById('bestSellersRow');
-        if (!row) return;
+        const carousel = document.getElementById('bestSellersCarousel');
+        if (!row || !carousel) return;
 
         const PIXELS_PER_SECOND = 40; // slow, readable scroll speed
-        let paused = false;
         let lastTime = null;
 
         function step(timestamp) {
@@ -251,23 +269,26 @@ require __DIR__ . '/includes/navbar.php';
           const deltaSeconds = (timestamp - lastTime) / 1000;
           lastTime = timestamp;
 
-          if (!paused) {
+          if (!isBestSellersPaused()) {
             const atEnd = row.scrollLeft + row.clientWidth >= row.scrollWidth - 1;
             if (atEnd) {
               row.scrollLeft = 0;
             } else {
               row.scrollLeft += PIXELS_PER_SECOND * deltaSeconds;
             }
+          } else {
+            lastTime = null; // avoid a big jump in scrollLeft once resumed
           }
           requestAnimationFrame(step);
         }
 
-        // Pause while the user is hovering, touching, or manually
-        // scrolling the row so autoplay doesn't fight their input.
-        row.addEventListener('mouseenter', () => { paused = true; });
-        row.addEventListener('mouseleave', () => { paused = false; lastTime = null; });
-        row.addEventListener('touchstart', () => { paused = true; }, { passive: true });
-        row.addEventListener('touchend', () => { paused = false; lastTime = null; });
+        // Pause while the user is hovering (row OR the arrow buttons,
+        // both live inside #bestSellersCarousel) or touching, so autoplay
+        // doesn't fight manual browsing.
+        carousel.addEventListener('mouseenter', () => { bestSellersHovering = true; });
+        carousel.addEventListener('mouseleave', () => { bestSellersHovering = false; });
+        row.addEventListener('touchstart', () => { bestSellersHovering = true; }, { passive: true });
+        row.addEventListener('touchend', () => { bestSellersHovering = false; });
 
         requestAnimationFrame(step);
       })();
