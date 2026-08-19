@@ -270,18 +270,44 @@ inline during the request.
 - [ ] **Pagination for admin tables** (products/orders/customers) —
       fine for a small catalog, will need it once the catalog grows.
 - [x] **Payment method: Cash on Delivery only, for now — by design.**
-      Checkout still shows JazzCash/EasyPaisa/Card/Bank Transfer as
-      options (so the UI and `orders.payment_method` schema are ready
-      for them later), but none of those are wired to a real payment
-      gateway — no money actually moves for any option except COD.
-      This is a deliberate scope decision for the current stage of the
-      business, not an oversight: integrating a real gateway (JazzCash/
-      EasyPaisa's merchant APIs, or a card processor) means signing up
-      for a merchant account with that provider, getting API
-      credentials, and handling their specific callback/webhook flow —
-      real integration work for a later phase once it's actually
-      needed. Selecting a non-COD payment method at checkout today
-      creates a normal order with that method recorded, but the
-      customer isn't actually charged.
+      Checkout shows JazzCash/EasyPaisa/Card/Bank Transfer but greys
+      them out with a "Coming Soon" badge (not selectable) — only COD
+      is clickable and selected by default. None of those are wired to
+      a real payment gateway yet — no money actually moves for any
+      option except COD. This is a deliberate scope decision for the
+      current stage of the business, not an oversight: integrating a
+      real gateway (JazzCash/EasyPaisa's merchant APIs, or a card
+      processor) means signing up for a merchant account with that
+      provider, getting API credentials, and handling their specific
+      callback/webhook flow — real integration work for a later phase
+      once it's actually needed.
+- [x] **Fixed: checkout page rendering blank.** `data-aos` on the
+      dynamically-injected checkout/order-summary/order-success markup
+      meant AOS.init() (which runs before that content exists) never
+      observed those elements, leaving them stuck at `opacity: 0`
+      forever with no console error. Removed `data-aos` from that
+      JS-templated content — AOS is only safe on static, server-rendered
+      markup.
+- [x] **Fixed: Review step blank + Place Order broken.** Both read
+      `#fullName`/`#phone`/`#address`/`#city`/`#email`/`#postal`
+      straight from the DOM, but those inputs only exist during step 1
+      — by step 3 they're gone, so `.value` on `null` threw silently.
+      Shipping fields are now captured into a `shippingInfo` object the
+      moment step 1 is left, and everything downstream (Review, Place
+      Order) reads from that instead. Going back to step 1 now also
+      keeps what was already typed.
+- [x] **Fixed: admin login not reaching the dashboard.** Logging in
+      with an admin account through the customer-facing `login.php`
+      authenticated fine but only set `$_SESSION['user_id']`, never
+      `$_SESSION['admin_id']` — the flag `admin/index.php`'s
+      `Auth::requireAdmin()` actually checks — so the storefront had no
+      link to the dashboard. `login.php` now also sets the admin
+      session and redirects straight to `admin/index.php` when the
+      account's role is admin, and the navbar shows an "Admin
+      Dashboard" link whenever that session flag is set. Sessions
+      already active before this fix are self-healed on the next page
+      load (`includes/navbar.php` checks the real DB role once and
+      backfills `admin_id` if needed, rather than requiring a fresh
+      login).
 - [ ] Delete or repurpose `assets/js/data.js` — unused now that every
       page reads from the database.
