@@ -15,6 +15,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Auth;
 use App\Models\Cart;
 use App\Models\Category;
 
@@ -71,13 +72,22 @@ function nav_active(string $key, string $activePage): string
       <ul class="navbar-nav flex-row gap-1 mt-2 pb-1">
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('home', $activePage) ?>" href="<?= $basePath ?>index.php">Home</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('shop', $activePage) ?>" href="<?= $basePath ?>shop.php">Shop</a></li>
+<?php if ($navCategories): ?>
+        <li class="nav-item dropdown">
+          <a class="nav-link-custom dropdown-toggle" href="#" id="navCategoriesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Categories</a>
+          <ul class="dropdown-menu" aria-labelledby="navCategoriesDropdown">
 <?php foreach ($navCategories as $cat): ?>
-        <li class="nav-item"><a class="nav-link-custom" href="<?= $basePath ?>shop.php?category=<?= urlencode($cat['name']) ?>"><?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?></a></li>
+            <li><a class="dropdown-item" href="<?= $basePath ?>shop.php?category=<?= urlencode($cat['name']) ?>"><?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?></a></li>
 <?php endforeach; ?>
+          </ul>
+        </li>
+<?php endif; ?>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('about', $activePage) ?>" href="<?= $basePath ?>about.php">About</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('contact', $activePage) ?>" href="<?= $basePath ?>contact.php">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('orders', $activePage) ?>" href="<?= $basePath ?>orders.php">Track Order</a></li>
+<?php if (Auth::isAdmin()): ?>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('admin', $activePage) ?>" href="<?= $basePath ?>admin/index.php">Admin</a></li>
+<?php endif; ?>
       </ul>
     </div>
   </nav>
@@ -96,14 +106,23 @@ function nav_active(string $key, string $activePage): string
       <ul class="navbar-nav">
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('home', $activePage) ?>" href="<?= $basePath ?>index.php">Home</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('shop', $activePage) ?>" href="<?= $basePath ?>shop.php">Shop</a></li>
+<?php if ($navCategories): ?>
+        <li class="nav-item dropdown">
+          <a class="nav-link-custom dropdown-toggle" href="#" id="navCategoriesDropdownMobile" role="button" data-bs-toggle="dropdown" aria-expanded="false">Categories</a>
+          <ul class="dropdown-menu" aria-labelledby="navCategoriesDropdownMobile">
 <?php foreach ($navCategories as $cat): ?>
-        <li class="nav-item"><a class="nav-link-custom" href="<?= $basePath ?>shop.php?category=<?= urlencode($cat['name']) ?>"><?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?></a></li>
+            <li><a class="dropdown-item" href="<?= $basePath ?>shop.php?category=<?= urlencode($cat['name']) ?>"><?= htmlspecialchars($cat['name'], ENT_QUOTES, 'UTF-8') ?></a></li>
 <?php endforeach; ?>
+          </ul>
+        </li>
+<?php endif; ?>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('about', $activePage) ?>" href="<?= $basePath ?>about.php">About</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('contact', $activePage) ?>" href="<?= $basePath ?>contact.php">Contact</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('orders', $activePage) ?>" href="<?= $basePath ?>orders.php">Track Order</a></li>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('wishlist', $activePage) ?>" href="<?= $basePath ?>wishlist.php">Wishlist</a></li>
+<?php if (Auth::isAdmin()): ?>
         <li class="nav-item"><a class="nav-link-custom <?= nav_active('admin', $activePage) ?>" href="<?= $basePath ?>admin/index.php">Admin</a></li>
+<?php endif; ?>
         <li class="nav-item mt-3 d-flex gap-2">
           <button class="theme-toggle" onclick="toggleTheme()"><i class="bi bi-moon-fill" id="themeIconMobile"></i></button>
 <?php if ($currentUserId): ?>
